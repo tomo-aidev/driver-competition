@@ -37,6 +37,11 @@ final class CameraPreviewUIView: UIView {
     }
 
     private let trajectoryLayer = CAShapeLayer()
+    private let tipLayer = CALayer()
+
+    private let trajectoryColor = UIColor(
+        red: 255/255, green: 115/255, blue: 81/255, alpha: 1.0 // #FF7351
+    )
 
     // MARK: - Init
 
@@ -51,21 +56,29 @@ final class CameraPreviewUIView: UIView {
     }
 
     private func setupTrajectoryLayer() {
-        trajectoryLayer.strokeColor = UIColor(
-            red: 255/255, green: 115/255, blue: 81/255, alpha: 1.0 // #FF7351
-        ).cgColor
+        // Main trajectory line
+        trajectoryLayer.strokeColor = trajectoryColor.cgColor
         trajectoryLayer.fillColor = nil
         trajectoryLayer.lineWidth = DetectionConfig.trajectoryLineWidth
         trajectoryLayer.lineCap = .round
         trajectoryLayer.lineJoin = .round
-        // Glow effect for visibility
-        trajectoryLayer.shadowColor = UIColor(
-            red: 255/255, green: 115/255, blue: 81/255, alpha: 1.0
-        ).cgColor
-        trajectoryLayer.shadowRadius = 6
-        trajectoryLayer.shadowOpacity = 0.8
+        trajectoryLayer.shadowColor = trajectoryColor.cgColor
+        trajectoryLayer.shadowRadius = 8
+        trajectoryLayer.shadowOpacity = 0.9
         trajectoryLayer.shadowOffset = .zero
         layer.addSublayer(trajectoryLayer)
+
+        // Tip glow ball (leading edge emphasis)
+        let tipSize: CGFloat = 16
+        tipLayer.bounds = CGRect(x: 0, y: 0, width: tipSize, height: tipSize)
+        tipLayer.cornerRadius = tipSize / 2
+        tipLayer.backgroundColor = UIColor.white.cgColor
+        tipLayer.shadowColor = trajectoryColor.cgColor
+        tipLayer.shadowRadius = 12
+        tipLayer.shadowOpacity = 1.0
+        tipLayer.shadowOffset = .zero
+        tipLayer.isHidden = true
+        layer.addSublayer(tipLayer)
     }
 
     override func layoutSubviews() {
@@ -78,6 +91,7 @@ final class CameraPreviewUIView: UIView {
     func updateTrajectory(points: [CGPoint]) {
         guard points.count >= 2 else {
             trajectoryLayer.path = nil
+            tipLayer.isHidden = true
             return
         }
 
@@ -110,6 +124,13 @@ final class CameraPreviewUIView: UIView {
         CATransaction.begin()
         CATransaction.setDisableActions(true)
         trajectoryLayer.path = path.cgPath
+
+        // Position tip glow at the leading point
+        if let lastPoint = points.last {
+            tipLayer.isHidden = false
+            tipLayer.position = lastPoint
+        }
+
         CATransaction.commit()
     }
 }

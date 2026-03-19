@@ -9,20 +9,25 @@ struct GolferGuideOverlay: View {
     @State private var pingOpacity: Double = 0.6
 
     var body: some View {
-        HStack(spacing: 0) {
-            // L-HANDED silhouette
-            golferSilhouette(mirrored: false)
-                .frame(maxWidth: .infinity)
+        VStack {
+            Spacer()
 
-            // Ball position guide
-            ballPositionGuide
-                .frame(width: 120)
+            HStack(spacing: 0) {
+                // L-HANDED silhouette
+                golferSilhouette(mirrored: false)
+                    .frame(maxWidth: .infinity)
 
-            // R-HANDED silhouette
-            golferSilhouette(mirrored: true)
-                .frame(maxWidth: .infinity)
+                // Ball position guide
+                ballPositionGuide
+                    .frame(width: 120)
+
+                // R-HANDED silhouette
+                golferSilhouette(mirrored: true)
+                    .frame(maxWidth: .infinity)
+            }
+            .padding(.horizontal, 20)
+            .padding(.bottom, 160) // just above record button area
         }
-        .padding(.horizontal, 20)
         .opacity(isRecording ? 0 : 1)
         .animation(.easeInOut(duration: 0.4), value: isRecording)
         .allowsHitTesting(false)

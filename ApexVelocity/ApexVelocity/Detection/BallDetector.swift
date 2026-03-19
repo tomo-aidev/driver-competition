@@ -160,10 +160,10 @@ final class BallDetector: ObservableObject {
             // Normalized time 0-1
             let t = elapsed / flightDuration
 
-            // Parabolic arc: starts bottom-center, arcs up and right
-            let x = 0.2 + t * 0.6  // left to right
+            // Parabolic arc: starts near bottom, arcs up and right
+            let x = 0.3 + t * 0.5  // left to right
             let peakHeight: CGFloat = 0.35
-            let y = 0.75 - (4.0 * peakHeight * t * (1.0 - t)) // parabolic arc upward
+            let y = 0.95 - (4.0 * peakHeight * t * (1.0 - t)) // starts just above record button area
 
             let detection = BallDetection(
                 normalizedCenter: CGPoint(x: x, y: y),

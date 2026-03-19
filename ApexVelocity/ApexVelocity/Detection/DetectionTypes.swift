@@ -37,5 +37,5 @@ enum DetectionConfig {
     /// before treating as a new trajectory
     static let maxPositionJump: CGFloat = 0.3
     /// Trajectory line width in points
-    static let trajectoryLineWidth: CGFloat = 3.0
+    static let trajectoryLineWidth: CGFloat = 5.0
 }
