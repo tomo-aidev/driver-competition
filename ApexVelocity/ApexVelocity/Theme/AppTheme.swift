@@ -23,6 +23,9 @@ enum AppTheme {
     static let surfaceBright = Color(hex: "#2C2C2C")
     static let surfaceContainerLowest = Color(hex: "#000000")
 
+    // MARK: - Trajectory
+    static let trajectoryColor = Color(hex: "#FF7351")
+
     // MARK: - On-Surface
     static let onSurface = Color.white
     static let onSurfaceVariant = Color(hex: "#ADAAAA")

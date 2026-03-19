@@ -11,5 +11,15 @@
 "stop_recording" = "Stop Recording";
 "frames_label" = "FRAMES";
 
+/* Guide & Detection */
+"ball_position" = "BALL POSITION";
+"l_handed" = "L-HANDED";
+"r_handed" = "R-HANDED";
+"album" = "Album";
+"menu" = "Menu";
+"settings" = "Settings";
+"detection_loading" = "Loading model...";
+"no_ball_detected" = "No ball detected";
+
 /* Info.plist */
 "NSCameraUsageDescription" = "Camera is used for high-speed golf swing capture.";

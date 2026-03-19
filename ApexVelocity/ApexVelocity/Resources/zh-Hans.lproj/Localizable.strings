@@ -11,5 +11,15 @@
 "stop_recording" = "停止录制";
 "frames_label" = "帧数";
 
+/* Guide & Detection */
+"ball_position" = "球位置";
+"l_handed" = "左手";
+"r_handed" = "右手";
+"album" = "相册";
+"menu" = "菜单";
+"settings" = "设置";
+"detection_loading" = "加载模型中...";
+"no_ball_detected" = "未检测到球";
+
 /* Info.plist */
 "NSCameraUsageDescription" = "使用相机进行高速高尔夫挥杆拍摄。";

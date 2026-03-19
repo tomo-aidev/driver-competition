@@ -11,5 +11,15 @@
 "stop_recording" = "녹화 중지";
 "frames_label" = "프레임";
 
+/* Guide & Detection */
+"ball_position" = "볼 위치";
+"l_handed" = "왼손잡이";
+"r_handed" = "오른손잡이";
+"album" = "앨범";
+"menu" = "메뉴";
+"settings" = "설정";
+"detection_loading" = "모델 로딩 중...";
+"no_ball_detected" = "공이 감지되지 않음";
+
 /* Info.plist */
 "NSCameraUsageDescription" = "골프 스윙 고속 촬영을 위해 카메라를 사용합니다.";

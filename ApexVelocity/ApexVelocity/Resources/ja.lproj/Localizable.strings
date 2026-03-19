@@ -11,5 +11,15 @@
 "stop_recording" = "録画停止";
 "frames_label" = "フレーム";
 
+/* Guide & Detection */
+"ball_position" = "ボール位置";
+"l_handed" = "左打ち";
+"r_handed" = "右打ち";
+"album" = "アルバム";
+"menu" = "メニュー";
+"settings" = "設定";
+"detection_loading" = "モデル読み込み中...";
+"no_ball_detected" = "ボール未検出";
+
 /* Info.plist */
 "NSCameraUsageDescription" = "ゴルフスイングのハイスピード撮影にカメラを使用します。";

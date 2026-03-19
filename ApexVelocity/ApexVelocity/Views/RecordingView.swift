@@ -2,18 +2,25 @@ import SwiftUI
 
 struct RecordingView: View {
     @ObservedObject var cameraManager: HighFPSCameraManager
+    @ObservedObject var ballTracker: BallTracker
 
     @State private var elapsedTime: TimeInterval = 0
     @State private var timer: Timer?
 
     var body: some View {
         ZStack {
-            // Camera Preview (full screen)
+            // Camera Preview with trajectory overlay (full screen)
             if cameraManager.permissionGranted {
-                CameraPreviewView(session: cameraManager.captureSession)
-                    .ignoresSafeArea()
+                CameraPreviewView(
+                    session: cameraManager.captureSession,
+                    trajectoryPoints: ballTracker.trajectoryPoints,
+                    onPreviewLayerReady: { layer in
+                        ballTracker.setPreviewLayer(layer)
+                    }
+                )
+                .ignoresSafeArea()
 
-                // Darkening gradient overlay
+                // Gradient overlays
                 VStack(spacing: 0) {
                     LinearGradient(
                         colors: [.black.opacity(0.4), .clear],
@@ -33,29 +40,13 @@ struct RecordingView: View {
                 }
                 .ignoresSafeArea()
             } else {
-                AppTheme.surface
-                    .ignoresSafeArea()
-
-                VStack(spacing: 16) {
-                    Image(systemName: "camera.fill")
-                        .font(.system(size: 48))
-                        .foregroundStyle(AppTheme.onSurfaceVariant)
-
-                    if let error = cameraManager.errorMessage {
-                        Text(error)
-                            .font(.custom("Inter-Regular", size: 14, relativeTo: .body))
-                            .foregroundStyle(AppTheme.onSurfaceVariant)
-                            .multilineTextAlignment(.center)
-                            .padding(.horizontal, 40)
-                    } else {
-                        Text(String(localized: "camera_requesting", defaultValue: "Requesting camera access..."))
-                            .font(.custom("Inter-Regular", size: 14, relativeTo: .body))
-                            .foregroundStyle(AppTheme.onSurfaceVariant)
-                    }
-                }
+                cameraPermissionView
             }
 
-            // Top bar: Timer + FPS
+            // Golfer guide overlay (center)
+            GolferGuideOverlay(isRecording: cameraManager.isRecording)
+
+            // Top bar
             VStack {
                 topBar
                 Spacer()
@@ -66,6 +57,20 @@ struct RecordingView: View {
                 Spacer()
                 bottomControls
             }
+
+            // FPS indicator (small, bottom-right corner, recording only)
+            if cameraManager.isRecording {
+                VStack {
+                    Spacer()
+                    HStack {
+                        Spacer()
+                        fpsIndicatorCompact
+                    }
+                }
+                .padding(.trailing, 16)
+                .padding(.bottom, 140)
+                .transition(.opacity)
+            }
         }
         .onAppear {
             cameraManager.requestPermission()
@@ -75,12 +80,42 @@ struct RecordingView: View {
         }
     }
 
+    // MARK: - Camera Permission View
+
+    private var cameraPermissionView: some View {
+        ZStack {
+            AppTheme.surface
+                .ignoresSafeArea()
+
+            VStack(spacing: 16) {
+                Image(systemName: "camera.fill")
+                    .font(.system(size: 48))
+                    .foregroundStyle(AppTheme.onSurfaceVariant)
+
+                if let error = cameraManager.errorMessage {
+                    Text(error)
+                        .font(.custom("Inter-Regular", size: 14, relativeTo: .body))
+                        .foregroundStyle(AppTheme.onSurfaceVariant)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 40)
+                } else {
+                    Text(String(localized: "camera_requesting", defaultValue: "Requesting camera access..."))
+                        .font(.custom("Inter-Regular", size: 14, relativeTo: .body))
+                        .foregroundStyle(AppTheme.onSurfaceVariant)
+                }
+            }
+        }
+    }
+
     // MARK: - Top Bar
 
     private var topBar: some View {
         HStack {
-            // FPS indicator
-            fpsIndicator
+            // Hamburger menu
+            iconButton(systemName: "line.3.horizontal") {
+                // Menu action (future)
+            }
+            .accessibilityLabel(String(localized: "menu", defaultValue: "Menu"))
 
             Spacer()
 
@@ -89,32 +124,26 @@ struct RecordingView: View {
 
             Spacer()
 
-            // Configured FPS badge
-            configuredFPSBadge
+            // Settings gear
+            iconButton(systemName: "gearshape.fill") {
+                // Settings action (future)
+            }
+            .accessibilityLabel(String(localized: "settings", defaultValue: "Settings"))
         }
-        .padding(.horizontal, 20)
+        .padding(.horizontal, 16)
         .padding(.top, 12)
     }
 
-    private var fpsIndicator: some View {
-        HStack(spacing: 6) {
-            Circle()
-                .fill(fpsColor)
-                .frame(width: 8, height: 8)
-
-            Text("\(Int(cameraManager.currentFPS))")
-                .font(.custom("SpaceGrotesk-Bold", size: 20, relativeTo: .title3))
-                .foregroundStyle(AppTheme.onSurface)
-
-            Text("FPS")
-                .font(.custom("Inter-Medium", size: 10, relativeTo: .caption2))
-                .tracking(2)
-                .foregroundStyle(AppTheme.onSurfaceVariant)
+    private func iconButton(systemName: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Image(systemName: systemName)
+                .font(.system(size: 18, weight: .medium))
+                .foregroundStyle(AppTheme.primaryFixed)
+                .frame(width: 40, height: 40)
+                .background(AppTheme.surfaceContainerHighest.opacity(0.6))
+                .clipShape(RoundedRectangle(cornerRadius: 10))
         }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 8)
-        .background(.ultraThinMaterial.opacity(0.8))
-        .clipShape(RoundedRectangle(cornerRadius: 8))
+        .buttonStyle(.plain)
     }
 
     private var timerDisplay: some View {
@@ -144,42 +173,12 @@ struct RecordingView: View {
         )
     }
 
-    private var configuredFPSBadge: some View {
-        Text(configuredFPSText)
-            .font(.custom("Inter-Bold", size: 10, relativeTo: .caption2))
-            .tracking(1)
-            .foregroundStyle(AppTheme.onPrimaryContainer)
-            .padding(.horizontal, 10)
-            .padding(.vertical, 6)
-            .background(AppTheme.primaryContainer)
-            .clipShape(RoundedRectangle(cornerRadius: 4))
-    }
-
     // MARK: - Bottom Controls
 
     private var bottomControls: some View {
         HStack(alignment: .bottom) {
-            // Frame count (left)
-            if cameraManager.isRecording {
-                VStack(spacing: 4) {
-                    Text("\(cameraManager.recordedFrameCount)")
-                        .font(.custom("SpaceGrotesk-Bold", size: 18, relativeTo: .body))
-                        .foregroundStyle(AppTheme.primaryFixed)
-                        .monospacedDigit()
-
-                    Text(String(localized: "frames_label", defaultValue: "FRAMES"))
-                        .font(.custom("Inter-Medium", size: 9, relativeTo: .caption2))
-                        .tracking(2)
-                        .foregroundStyle(AppTheme.onSurfaceVariant)
-                }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 10)
-                .background(.ultraThinMaterial.opacity(0.6))
-                .clipShape(RoundedRectangle(cornerRadius: 8))
-                .transition(.opacity.combined(with: .scale(scale: 0.8)))
-            } else {
-                Color.clear.frame(width: 80)
-            }
+            // Album button (left)
+            albumButton
 
             Spacer()
 
@@ -188,11 +187,41 @@ struct RecordingView: View {
 
             Spacer()
 
-            Color.clear.frame(width: 80)
+            // Frame count (right, during recording)
+            if cameraManager.isRecording {
+                frameCounter
+                    .transition(.opacity.combined(with: .scale(scale: 0.8)))
+            } else {
+                Color.clear.frame(width: 64, height: 64)
+            }
         }
         .padding(.horizontal, 24)
         .padding(.bottom, 40)
         .animation(.easeInOut(duration: 0.3), value: cameraManager.isRecording)
+    }
+
+    private var albumButton: some View {
+        Button {
+            // Album action (future)
+        } label: {
+            VStack(spacing: 6) {
+                RoundedRectangle(cornerRadius: 10)
+                    .stroke(AppTheme.outlineVariant.opacity(0.3), lineWidth: 2)
+                    .frame(width: 64, height: 64)
+                    .overlay {
+                        Image(systemName: "photo.on.rectangle")
+                            .font(.system(size: 24))
+                            .foregroundStyle(AppTheme.onSurfaceVariant.opacity(0.6))
+                    }
+
+                Text(String(localized: "album", defaultValue: "Album"))
+                    .font(.custom("Inter-Medium", size: 9, relativeTo: .caption2))
+                    .tracking(1)
+                    .foregroundStyle(AppTheme.onSurfaceVariant.opacity(0.6))
+            }
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(String(localized: "album", defaultValue: "Album"))
     }
 
     private var recordButton: some View {
@@ -200,7 +229,14 @@ struct RecordingView: View {
             if cameraManager.isRecording {
                 cameraManager.stopRecording()
                 stopTimer()
+                // Keep trajectory visible briefly before clearing
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                    ballTracker.reset()
+                    cameraManager.ballDetector?.reset()
+                }
             } else {
+                ballTracker.reset()
+                cameraManager.ballDetector?.reset()
                 cameraManager.startRecording()
                 startTimer()
             }
@@ -217,7 +253,7 @@ struct RecordingView: View {
                     .stroke(.white, lineWidth: 4)
                     .frame(width: 80, height: 80)
 
-                // Inner shape (circle when idle, rounded square when recording)
+                // Inner shape
                 Group {
                     if cameraManager.isRecording {
                         RoundedRectangle(cornerRadius: 8)
@@ -242,6 +278,47 @@ struct RecordingView: View {
         )
     }
 
+    private var frameCounter: some View {
+        VStack(spacing: 4) {
+            Text("\(cameraManager.recordedFrameCount)")
+                .font(.custom("SpaceGrotesk-Bold", size: 18, relativeTo: .body))
+                .foregroundStyle(AppTheme.primaryFixed)
+                .monospacedDigit()
+
+            Text(String(localized: "frames_label", defaultValue: "FRAMES"))
+                .font(.custom("Inter-Medium", size: 9, relativeTo: .caption2))
+                .tracking(2)
+                .foregroundStyle(AppTheme.onSurfaceVariant)
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 10)
+        .background(.ultraThinMaterial.opacity(0.6))
+        .clipShape(RoundedRectangle(cornerRadius: 8))
+    }
+
+    // MARK: - Compact FPS Indicator
+
+    private var fpsIndicatorCompact: some View {
+        HStack(spacing: 4) {
+            Circle()
+                .fill(fpsColor)
+                .frame(width: 6, height: 6)
+
+            Text("\(Int(cameraManager.currentFPS))")
+                .font(.custom("SpaceGrotesk-Bold", size: 14, relativeTo: .caption))
+                .foregroundStyle(AppTheme.onSurface)
+
+            Text("FPS")
+                .font(.custom("Inter-Medium", size: 8, relativeTo: .caption2))
+                .tracking(1)
+                .foregroundStyle(AppTheme.onSurfaceVariant)
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 5)
+        .background(.ultraThinMaterial.opacity(0.6))
+        .clipShape(RoundedRectangle(cornerRadius: 6))
+    }
+
     // MARK: - Helpers
 
     private var fpsColor: Color {
@@ -259,19 +336,6 @@ struct RecordingView: View {
         let minutes = (Int(elapsedTime) % 3600) / 60
         let seconds = Int(elapsedTime) % 60
         return String(format: "%02d:%02d:%02d", hours, minutes, seconds)
-    }
-
-    private var configuredFPSText: String {
-        let fps = Int(cameraManager.configuredFPS)
-        if fps >= 240 {
-            return "240FPS"
-        } else if fps >= 120 {
-            return "120FPS"
-        } else if fps >= 60 {
-            return "60FPS"
-        } else {
-            return "\(fps)FPS"
-        }
     }
 
     private func startTimer() {

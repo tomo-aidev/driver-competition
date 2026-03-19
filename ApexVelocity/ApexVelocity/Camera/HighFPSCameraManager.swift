@@ -44,13 +44,16 @@ final class HighFPSCameraManager: NSObject, ObservableObject {
     private var lastFPSUpdate: CFAbsoluteTime = 0
     private let fpsUpdateInterval: CFAbsoluteTime = 0.5
 
-    // MARK: - Frame Buffer (for future CoreML inference)
+    // MARK: - Frame Buffer & Detection
 
-    /// Latest pixel buffer — accessible for future AI processing pipeline
+    /// Latest pixel buffer — accessible for AI processing pipeline
     private(set) var latestPixelBuffer: CVPixelBuffer?
 
     /// Frame counter for recorded session
     private(set) var recordedFrameCount: Int = 0
+
+    /// Ball detector for CoreML inference (injected externally)
+    var ballDetector: BallDetector?
 
     // MARK: - Initialization
 
@@ -287,6 +290,9 @@ extension HighFPSCameraManager: AVCaptureVideoDataOutputSampleBufferDelegate {
 
         // Update FPS measurement
         updateFPSMeasurement()
+
+        // Submit frame for ball detection (non-blocking)
+        ballDetector?.detect(pixelBuffer: pixelBuffer)
     }
 
     func captureOutput(
