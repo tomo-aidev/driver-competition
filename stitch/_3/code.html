@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="ja"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-secondary-fixed-variant": "#932e00",
+              "surface-tint": "#f3ffca",
+              "secondary-dim": "#ff7440",
+              "secondary": "#ff7440",
+              "inverse-surface": "#fcf8f8",
+              "on-secondary-fixed": "#631c00",
+              "inverse-on-surface": "#565554",
+              "surface-container-highest": "#262626",
+              "surface-container": "#1a1919",
+              "on-secondary": "#400f00",
+              "surface-variant": "#262626",
+              "surface-container-lowest": "#000000",
+              "surface": "#0e0e0e",
+              "on-primary": "#516700",
+              "tertiary-container": "#edeaea",
+              "tertiary-dim": "#edeaea",
+              "on-tertiary-fixed": "#515050",
+              "on-tertiary-container": "#575656",
+              "outline-variant": "#494847",
+              "error-container": "#b92902",
+              "primary": "#f3ffca",
+              "on-tertiary": "#605f5e",
+              "secondary-container": "#aa3600",
+              "primary-fixed": "#cafd00",
+              "on-primary-container": "#4a5e00",
+              "secondary-fixed": "#ffc4b1",
+              "tertiary": "#fcf9f8",
+              "on-error": "#450900",
+              "surface-dim": "#0e0e0e",
+              "on-secondary-container": "#fff6f3",
+              "primary-dim": "#beee00",
+              "on-tertiary-fixed-variant": "#6e6d6c",
+              "surface-container-low": "#131313",
+              "on-surface": "#ffffff",
+              "tertiary-fixed-dim": "#f3f0ef",
+              "primary-container": "#cafd00",
+              "on-error-container": "#ffd2c8",
+              "tertiary-fixed": "#ffffff",
+              "surface-container-high": "#201f1f",
+              "primary-fixed-dim": "#beee00",
+              "on-surface-variant": "#adaaaa",
+              "error-dim": "#d53d18",
+              "error": "#ff7351",
+              "surface-bright": "#2c2c2c",
+              "background": "#0e0e0e",
+              "secondary-fixed-dim": "#ffb197",
+              "outline": "#777575",
+              "on-primary-fixed-variant": "#526900",
+              "on-primary-fixed": "#3a4a00",
+              "on-background": "#ffffff",
+              "inverse-primary": "#516700"
+            },
+            fontFamily: {
+              "headline": ["Space Grotesk"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .recording-pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: .5; }
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface font-body select-none overflow-hidden h-screen w-full relative">
+<!-- Background Camera View (Simulated) -->
+<div class="absolute inset-0 z-0">
+<img alt="Golf range background" class="w-full h-full object-cover blur-[2px] brightness-50" data-alt="Blurred golf range with a golfer at address position" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBIeZuQGDTUToPd3CW5clAlFNyG0MLP_05GGSfo2MF1NyVFnfVbNy2WcGSnezumoUPbnfxwgCv6JqrmSJ1LP5uJ6IhLOKmB6GVhfC3VVDtAC9CghZLpoTUsOq4MLUyTysbpPp3zoUOn0xeMwYj4Q5IeJF0nlou9fd9Bw7GvNywPb6HY_bJ4WzdSDLo1u-stMqehdiTIc4QpPJhO4HUng5UWwlGmRZ60N8t2HbGXzl1qeDEpxc7hzXk5euFMMlQWP2p1IVSTds3-aj7G"/>
+<div class="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/60"></div>
+</div>
+<!-- Top App Bar Content (Timer) -->
+<header class="fixed top-0 left-0 w-full z-20 flex justify-between items-center px-6 py-6">
+<div class="flex items-center space-x-4">
+<button class="w-10 h-10 flex items-center justify-center bg-surface-container-highest/60 backdrop-blur-md rounded-lg text-primary">
+<span class="material-symbols-outlined" data-icon="menu">menu</span>
+</button>
+</div>
+<div class="bg-surface-container-lowest/80 backdrop-blur-xl px-6 py-2 rounded-full border border-outline-variant/15 flex items-center space-x-3">
+<div class="w-2 h-2 rounded-full bg-secondary recording-pulse"></div>
+<span class="font-headline font-bold text-2xl tracking-widest text-on-surface">00:00:00</span>
+</div>
+<button class="w-10 h-10 flex items-center justify-center bg-surface-container-highest/60 backdrop-blur-md rounded-lg text-primary">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+</button>
+</header>
+<!-- Center UI Guides (Performance Brutalism) -->
+<main class="absolute inset-0 z-10 flex flex-col items-center justify-center pointer-events-none">
+<div class="relative w-full h-full max-w-2xl flex items-center justify-center px-8">
+<!-- Left Handed Guide -->
+<div class="absolute left-10 opacity-30">
+<svg fill="none" height="400" stroke="white" stroke-width="0.5" viewbox="0 0 100 200" width="180">
+<path d="M50 10 L45 30 L48 60 L40 100 L45 150 L35 190"></path>
+<circle cx="50" cy="20" r="8"></circle>
+<path d="M50 60 L65 90 L60 120"></path>
+<path d="M50 60 L35 90 L40 120"></path>
+<path d="M50 150 L55 190"></path>
+</svg>
+<div class="text-center font-label text-[10px] tracking-widest mt-2 uppercase">L-HANDED</div>
+</div>
+<!-- Central Ball Guide -->
+<div class="flex flex-col items-center">
+<div class="w-20 h-20 rounded-full border-2 border-primary-container/40 flex items-center justify-center relative">
+<div class="absolute inset-0 rounded-full border border-primary animate-ping opacity-20"></div>
+<span class="material-symbols-outlined text-primary text-4xl" data-icon="north">north</span>
+</div>
+<div class="mt-4 bg-surface-container-lowest/70 backdrop-blur-md px-4 py-1 rounded border border-primary/20">
+<span class="text-primary font-label text-[10px] font-bold tracking-[0.2em] uppercase">Ball Position</span>
+</div>
+</div>
+<!-- Right Handed Guide -->
+<div class="absolute right-10 opacity-30">
+<svg fill="none" height="400" stroke="white" stroke-width="0.5" viewbox="0 0 100 200" width="180">
+<path d="M50 10 L55 30 L52 60 L60 100 L55 150 L65 190"></path>
+<circle cx="50" cy="20" r="8"></circle>
+<path d="M50 60 L35 90 L40 120"></path>
+<path d="M50 60 L65 90 L60 120"></path>
+<path d="M50 150 L45 190"></path>
+</svg>
+<div class="text-center font-label text-[10px] tracking-widest mt-2 uppercase">R-HANDED</div>
+</div>
+</div>
+</main>
+<!-- Bottom Interface Controls -->
+<div class="fixed bottom-24 left-0 w-full z-30 px-6 flex items-end justify-between">
+<!-- Album Shortcut (Zabuton Layering) -->
+<div class="flex flex-col items-center gap-2">
+<button class="group relative w-16 h-16 rounded-lg overflow-hidden border-2 border-outline-variant/30 active:scale-95 transition-transform duration-200">
+<img alt="Recent swing thumbnail" class="w-full h-full object-cover grayscale group-hover:grayscale-0" data-alt="Small thumbnail preview of a golf swing video" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDHhl3tHgk6EldIGNGaUIJBKclpDmaV1PlNd_bu6jYNCrTP2UOi-Jlwhp9tg1JVKusyqKSZOJh2bvIIa-rxxyXCnl_ot6yOH2cA0BH91tErAXBTwP--OlIifCbFoCj_JGyUiqa8Kljxp_tFFBI4kSAWZKD5HFBb6feVfv44qfDKAw08SxAqo7OIisKJoX1isBI3JfTsC_Bd852Vh0kod9fA6jd9NHvaBL4zezXZ5aaDecDZf4WS5gPYF22A6Ke3e26gwdszyemtXIme"/>
+<div class="absolute inset-0 bg-black/20"></div>
+</button>
+<span class="font-body text-[10px] font-medium text-on-surface-variant">アルバム</span>
+</div>
+<!-- Main Record Button (Signature Texture) -->
+<div class="relative mb-2">
+<div class="absolute inset-0 rounded-full bg-white opacity-20 scale-125 blur-sm"></div>
+<button class="relative w-20 h-20 rounded-full border-4 border-white flex items-center justify-center active:scale-90 transition-all duration-150">
+<div class="w-14 h-14 rounded-full bg-error shadow-[0_0_20px_rgba(255,115,81,0.5)] flex items-center justify-center">
+<div class="w-6 h-6 rounded-sm bg-white/20"></div>
+</div>
+</button>
+</div>
+<!-- Trajectory Color Settings (Precision HUD) -->
+<div class="flex flex-col items-end gap-3 bg-surface-container-lowest/60 backdrop-blur-xl p-4 rounded-xl border border-outline-variant/10">
+<div class="flex items-center gap-2 mb-1">
+<span class="text-[10px] font-label font-bold text-on-surface-variant tracking-wider">弾道色設定</span>
+<span class="material-symbols-outlined text-[14px] text-on-surface-variant" data-icon="lock" style="font-variation-settings: 'FILL' 1;">lock</span>
+</div>
+<div class="grid grid-cols-4 gap-2">
+<div class="w-6 h-6 rounded bg-error shadow-lg shadow-error/20"></div>
+<div class="w-6 h-6 rounded bg-secondary-dim opacity-60"></div>
+<div class="w-6 h-6 rounded bg-primary-fixed opacity-60"></div>
+<div class="w-6 h-6 rounded bg-blue-500 opacity-60"></div>
+<div class="w-6 h-6 rounded bg-purple-500 opacity-60"></div>
+<div class="w-6 h-6 rounded bg-white opacity-60"></div>
+<div class="w-6 h-6 rounded bg-pink-500 opacity-60"></div>
+<div class="w-6 h-6 rounded bg-emerald-500 opacity-60"></div>
+</div>
+</div>
+</div>
+<!-- Bottom Navigation Bar (Shared Component Strategy) -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center pb-safe pt-2 bg-[#0e0e0e] border-t border-[#494847]/15 z-50 shadow-[0_-4px_12px_rgba(255,255,255,0.08)]">
+<!-- History -->
+<a class="flex flex-col items-center justify-center text-[#adaaaa] px-6 py-2 hover:text-[#f3ffca] active:scale-90 transition-transform duration-150" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="history">history</span>
+<span class="font-['Inter'] text-[10px] font-medium uppercase tracking-widest">履歴</span>
+</a>
+<!-- Record (ACTIVE) -->
+<a class="flex flex-col items-center justify-center bg-[#262626] text-[#CCFF00] rounded-lg px-6 py-2 active:scale-90 transition-transform duration-150" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="videocam" style="font-variation-settings: 'FILL' 1;">videocam</span>
+<span class="font-['Inter'] text-[10px] font-medium uppercase tracking-widest">録画</span>
+</a>
+<!-- Analysis -->
+<a class="flex flex-col items-center justify-center text-[#adaaaa] px-6 py-2 hover:text-[#f3ffca] active:scale-90 transition-transform duration-150" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="analytics">analytics</span>
+<span class="font-['Inter'] text-[10px] font-medium uppercase tracking-widest">分析</span>
+</a>
+<!-- Settings (Customized for Footer Request) -->
+<a class="flex flex-col items-center justify-center text-[#adaaaa] px-6 py-2 hover:text-[#f3ffca] active:scale-90 transition-transform duration-150" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="settings">settings</span>
+<span class="font-['Inter'] text-[10px] font-medium uppercase tracking-widest">設定</span>
+</a>
+</nav>
+</body></html>

@@ -1,0 +1,15 @@
+/* Splash */
+"splash_calibrating" = "システムキャリブレーション中";
+
+/* Camera */
+"camera_permission_denied" = "カメラへのアクセスが拒否されました。設定からカメラの使用を許可してください。";
+"camera_not_available" = "このデバイスではカメラを使用できません。";
+"camera_requesting" = "カメラへのアクセスを要求中...";
+
+/* Recording */
+"start_recording" = "録画開始";
+"stop_recording" = "録画停止";
+"frames_label" = "フレーム";
+
+/* Info.plist */
+"NSCameraUsageDescription" = "ゴルフスイングのハイスピード撮影にカメラを使用します。";

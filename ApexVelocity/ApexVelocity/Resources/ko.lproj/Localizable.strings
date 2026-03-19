@@ -1,0 +1,15 @@
+/* Splash */
+"splash_calibrating" = "시스템 캘리브레이션 중";
+
+/* Camera */
+"camera_permission_denied" = "카메라 접근이 거부되었습니다. 설정에서 허용해 주세요.";
+"camera_not_available" = "이 기기에서는 카메라를 사용할 수 없습니다.";
+"camera_requesting" = "카메라 접근 요청 중...";
+
+/* Recording */
+"start_recording" = "녹화 시작";
+"stop_recording" = "녹화 중지";
+"frames_label" = "프레임";
+
+/* Info.plist */
+"NSCameraUsageDescription" = "골프 스윙 고속 촬영을 위해 카메라를 사용합니다.";

@@ -1,0 +1,15 @@
+/* Splash */
+"splash_calibrating" = "系统校准中";
+
+/* Camera */
+"camera_permission_denied" = "相机访问被拒绝。请在设置中启用。";
+"camera_not_available" = "此设备不支持相机。";
+"camera_requesting" = "正在请求相机访问权限...";
+
+/* Recording */
+"start_recording" = "开始录制";
+"stop_recording" = "停止录制";
+"frames_label" = "帧数";
+
+/* Info.plist */
+"NSCameraUsageDescription" = "使用相机进行高速高尔夫挥杆拍摄。";

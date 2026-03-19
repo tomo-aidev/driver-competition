@@ -1,0 +1,15 @@
+/* Splash */
+"splash_calibrating" = "SYSTEM CALIBRATING";
+
+/* Camera */
+"camera_permission_denied" = "Camera access denied. Please enable in Settings.";
+"camera_not_available" = "Camera not available on this device.";
+"camera_requesting" = "Requesting camera access...";
+
+/* Recording */
+"start_recording" = "Start Recording";
+"stop_recording" = "Stop Recording";
+"frames_label" = "FRAMES";
+
+/* Info.plist */
+"NSCameraUsageDescription" = "Camera is used for high-speed golf swing capture.";

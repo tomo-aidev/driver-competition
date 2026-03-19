@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="ja"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>スイング分析 - 設定</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-secondary-fixed-variant": "#932e00",
+              "surface-tint": "#f3ffca",
+              "secondary-dim": "#ff7440",
+              "secondary": "#ff7440",
+              "inverse-surface": "#fcf8f8",
+              "on-secondary-fixed": "#631c00",
+              "inverse-on-surface": "#565554",
+              "surface-container-highest": "#262626",
+              "surface-container": "#1a1919",
+              "on-secondary": "#400f00",
+              "surface-variant": "#262626",
+              "surface-container-lowest": "#000000",
+              "surface": "#0e0e0e",
+              "on-primary": "#516700",
+              "tertiary-container": "#edeaea",
+              "tertiary-dim": "#edeaea",
+              "on-tertiary-fixed": "#515050",
+              "on-tertiary-container": "#575656",
+              "outline-variant": "#494847",
+              "error-container": "#b92902",
+              "primary": "#f3ffca",
+              "on-tertiary": "#605f5e",
+              "secondary-container": "#aa3600",
+              "primary-fixed": "#cafd00",
+              "on-primary-container": "#4a5e00",
+              "secondary-fixed": "#ffc4b1",
+              "tertiary": "#fcf9f8",
+              "on-error": "#450900",
+              "surface-dim": "#0e0e0e",
+              "on-secondary-container": "#fff6f3",
+              "primary-dim": "#beee00",
+              "on-tertiary-fixed-variant": "#6e6d6c",
+              "surface-container-low": "#131313",
+              "on-surface": "#ffffff",
+              "tertiary-fixed-dim": "#f3f0ef",
+              "primary-container": "#cafd00",
+              "on-error-container": "#ffd2c8",
+              "tertiary-fixed": "#ffffff",
+              "surface-container-high": "#201f1f",
+              "primary-fixed-dim": "#beee00",
+              "on-surface-variant": "#adaaaa",
+              "error-dim": "#d53d18",
+              "error": "#ff7351",
+              "surface-bright": "#2c2c2c",
+              "background": "#0e0e0e",
+              "secondary-fixed-dim": "#ffb197",
+              "outline": "#777575",
+              "on-primary-fixed-variant": "#526900",
+              "on-primary-fixed": "#3a4a00",
+              "on-background": "#ffffff",
+              "inverse-primary": "#516700"
+            },
+            fontFamily: {
+              "headline": ["Space Grotesk"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            background-color: #0e0e0e;
+            color: #ffffff;
+            font-family: 'Inter', sans-serif;
+        }
+        .bento-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface min-h-screen pb-24">
+<!-- TopAppBar -->
+<header class="bg-[#0e0e0e] text-[#CCFF00] font-['Space_Grotesk'] font-bold tracking-tight docked full-width top-0 no-border tonal-shift bg-[#131313] flat no-shadows luminance-stacking flex justify-between items-center w-full px-6 py-4 sticky z-50">
+<div class="flex items-center gap-4">
+<button class="hover:bg-[#2c2c2c] transition-colors active:scale-95 duration-200 p-2 rounded-lg">
+<span class="material-symbols-outlined">menu</span>
+</button>
+<h1 class="text-xl font-bold text-[#CCFF00] uppercase tracking-tight">設定</h1>
+</div>
+<div class="flex items-center gap-2">
+<button class="hover:bg-[#2c2c2c] transition-colors active:scale-95 duration-200 p-2 rounded-lg">
+<span class="material-symbols-outlined">settings</span>
+</button>
+</div>
+</header>
+<main class="max-w-md mx-auto px-6 pt-8 space-y-10">
+<!-- User Profile Quick View (Asymmetric Layout Element) -->
+<section class="relative overflow-hidden bg-surface-container-high rounded-xl p-6 border-l-4 border-primary">
+<div class="flex items-center justify-between">
+<div>
+<span class="text-[0.75rem] font-label font-medium text-on-surface-variant uppercase tracking-[0.2em] mb-1 block">PREMIUM MEMBER</span>
+<h2 class="text-2xl font-headline font-bold text-on-surface">佐藤 健太</h2>
+<p class="text-sm text-on-surface-variant font-body">kenta.sato@golf-pro.jp</p>
+</div>
+<div class="w-16 h-16 rounded-lg bg-surface-container-highest flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-4xl" style="font-variation-settings: 'FILL' 1;">person</span>
+</div>
+</div>
+</section>
+<!-- Settings Group 1: Capture & Display -->
+<section>
+<div class="flex items-center justify-between mb-4 px-1">
+<h3 class="text-[0.75rem] font-label font-bold text-on-surface-variant uppercase tracking-[0.2em]">Capture &amp; Logic</h3>
+<div class="h-[1px] flex-grow ml-4 bg-outline-variant opacity-15"></div>
+</div>
+<div class="space-y-3">
+<!-- Account -->
+<button class="w-full flex items-center justify-between p-4 bg-surface-container-low hover:bg-surface-bright transition-colors group">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary transition-colors">manage_accounts</span>
+<span class="text-on-surface font-body font-medium">アカウント</span>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant text-sm">chevron_right</span>
+</button>
+<!-- Video Quality: Bento Style Feature -->
+<div class="p-4 bg-surface-container-low border-l-4 border-primary-fixed">
+<div class="flex items-center justify-between mb-2">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-primary">high_quality</span>
+<span class="text-on-surface font-body font-medium">画質設定</span>
+</div>
+<span class="text-[0.65rem] font-label bg-primary-container text-on-primary-container px-2 py-0.5 rounded font-bold">4K / 240FPS</span>
+</div>
+<div class="flex gap-2 mt-4">
+<div class="flex-1 h-1 bg-primary"></div>
+<div class="flex-1 h-1 bg-primary"></div>
+<div class="flex-1 h-1 bg-primary"></div>
+<div class="flex-1 h-1 bg-outline-variant opacity-30"></div>
+</div>
+</div>
+<!-- Guide Lines Toggle -->
+<div class="w-full flex items-center justify-between p-4 bg-surface-container-low">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-on-surface-variant">grid_on</span>
+<span class="text-on-surface font-body font-medium">ガイド線の表示/非表示</span>
+</div>
+<div class="w-12 h-6 bg-primary-container rounded-full flex items-center px-1">
+<div class="w-4 h-4 bg-on-primary-container rounded-sm shadow-sm ml-auto"></div>
+</div>
+</div>
+<!-- Auto Trigger -->
+<div class="w-full flex items-center justify-between p-4 bg-surface-container-low">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-secondary">bolt</span>
+<span class="text-on-surface font-body font-medium">自動録画トリガー</span>
+</div>
+<span class="text-secondary text-[0.7rem] font-bold uppercase tracking-wider">ON</span>
+</div>
+</div>
+</section>
+<!-- Settings Group 2: System -->
+<section>
+<div class="flex items-center justify-between mb-4 px-1">
+<h3 class="text-[0.75rem] font-label font-bold text-on-surface-variant uppercase tracking-[0.2em]">Storage &amp; System</h3>
+<div class="h-[1px] flex-grow ml-4 bg-outline-variant opacity-15"></div>
+</div>
+<div class="space-y-3">
+<!-- Storage Management -->
+<button class="w-full flex items-center justify-between p-4 bg-surface-container-low hover:bg-surface-bright transition-colors group">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary transition-colors">database</span>
+<div class="text-left">
+<span class="text-on-surface font-body font-medium block">ストレージ管理</span>
+<span class="text-[0.65rem] text-on-surface-variant font-body">残り 12.4 GB / 50 GB 使用中</span>
+</div>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant text-sm">chevron_right</span>
+</button>
+<!-- About -->
+<button class="w-full flex items-center justify-between p-4 bg-surface-container-low hover:bg-surface-bright transition-colors group">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary transition-colors">info</span>
+<span class="text-on-surface font-body font-medium">アプリについて</span>
+</div>
+<span class="text-[0.65rem] text-on-surface-variant font-label">v2.4.0-pro</span>
+</button>
+</div>
+</section>
+<!-- Danger Zone -->
+<section class="pt-4">
+<button class="w-full py-4 bg-surface-container-lowest border border-secondary/20 text-secondary font-bold font-headline tracking-widest text-sm uppercase hover:bg-secondary/10 transition-colors">
+                ログアウト
+            </button>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center pb-safe pt-2 bg-[#0e0e0e] border-t border-[#494847]/15 shadow-[0_-4px_12px_rgba(255,255,255,0.08)] z-50">
+<a class="flex flex-col items-center justify-center text-[#adaaaa] px-6 py-2 hover:text-[#f3ffca] active:scale-90 transition-transform duration-150" href="#">
+<span class="material-symbols-outlined">history</span>
+<span class="font-['Inter'] text-[10px] font-medium uppercase tracking-widest mt-1">履歴</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#adaaaa] px-6 py-2 hover:text-[#f3ffca] active:scale-90 transition-transform duration-150" href="#">
+<span class="material-symbols-outlined">videocam</span>
+<span class="font-['Inter'] text-[10px] font-medium uppercase tracking-widest mt-1">録画</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-[#262626] text-[#CCFF00] rounded-lg px-6 py-2 active:scale-90 transition-transform duration-150" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">analytics</span>
+<span class="font-['Inter'] text-[10px] font-medium uppercase tracking-widest mt-1">分析</span>
+</a>
+</nav>
+</body></html>
