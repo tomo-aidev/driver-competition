@@ -9,18 +9,17 @@ struct ClubHeadDetection {
 }
 
 enum SwingPhase {
-    case address    // club near ball, before swing
-    case backswing  // club moving up (blue)
-    case downswing  // club moving down toward ball (green)
-    case postImpact // after ball is hit
+    case address
+    case backswing
+    case downswing
+    case postImpact
 }
 
-/// Analyzes golf swing by tracking the club head through frames.
-/// Detects backswing (up) and downswing (down) phases.
+/// Analyzes golf swing by tracking the club head's motion arc.
+/// Uses frame differencing to find dark, fast-moving pixels,
+/// then extracts the swing arc tip (furthest from pivot with continuity).
 struct SwingAnalyzer {
 
-    /// Analyze swing trajectory from video frames around the impact time.
-    /// Returns club head positions with swing phase classification.
     static func analyzeSwing(
         from asset: AVAsset,
         impactTime: CMTime,
@@ -31,232 +30,184 @@ struct SwingAnalyzer {
         generator.requestedTimeToleranceBefore = CMTime(value: 1, timescale: 120)
         generator.requestedTimeToleranceAfter = CMTime(value: 1, timescale: 120)
 
+        let tracks = try await asset.loadTracks(withMediaType: .video)
+        guard let videoTrack = tracks.first else { return [] }
+        let fps = Double(try await videoTrack.load(.nominalFrameRate))
+        let size = try await videoTrack.load(.naturalSize)
+        let w = Int(size.width)
+        let h = Int(size.height)
+
         let impactSeconds = CMTimeGetSeconds(impactTime)
 
-        // Extract frames: 3 seconds before impact to 1 second after
-        let startTime = max(0, impactSeconds - 3.0)
-        let endTime = impactSeconds + 1.0
-        let frameInterval = 0.1 // 10fps sampling
+        // Pivot point (golfer's body center, approximate)
+        let pivotX = Int(Double(w) * 0.32)
+        let pivotY = Int(Double(h) * 0.52)
+        let ballX = Int(Double(ballPosition.x) * Double(w))
+        let ballY = Int(Double(ballPosition.y) * Double(h))
 
-        var detections: [ClubHeadDetection] = []
-        var prevHeadPos: CGPoint?
-        var reachedTop = false
+        // Collect motion points: dark + moving pixels
+        let startTime = max(0, impactSeconds - 1.8)
+        let endTime = impactSeconds + 0.5
+        let frameInterval = 0.1 // 10fps sampling for time bins
 
-        var time = startTime
-        while time <= endTime {
-            let cmTime = CMTime(seconds: time, preferredTimescale: 600)
+        var timeBins: [Double: [(x: Int, y: Int, motion: Float)]] = [:]
+        var prevGray: [UInt8]?
+        var prevTime = startTime
+
+        // Sample every ~3 frames
+        let sampleInterval = 3.0 / fps
+        var t = startTime
+        while t < endTime {
+            let cmTime = CMTime(seconds: t, preferredTimescale: 600)
             var actualTime = CMTime.zero
-
             guard let image = try? generator.copyCGImage(at: cmTime, actualTime: &actualTime) else {
-                time += frameInterval
+                t += sampleInterval
                 continue
             }
 
-            let currentSeconds = CMTimeGetSeconds(actualTime)
+            let gray = grayscalePixels(from: image, width: w, height: h)
+            guard let currGray = gray else {
+                t += sampleInterval
+                continue
+            }
 
-            // Detect club head (dark object near/around ball area or moving above)
-            if let headPos = detectClubHead(in: image, ballPosition: ballPosition, previousHead: prevHeadPos) {
+            if let prev = prevGray {
+                let timeBin = (t * 10).rounded() / 10  // quantize to 0.1s
 
-                // Determine swing phase
-                let phase: SwingPhase
-                if currentSeconds >= impactSeconds {
-                    phase = .postImpact
-                } else if let prev = prevHeadPos {
-                    // Head moving up = backswing, moving down = downswing
-                    if headPos.y < prev.y {
-                        // Moving up on screen = backswing
-                        reachedTop = true
-                        phase = .backswing
-                    } else if reachedTop {
-                        phase = .downswing
-                    } else {
-                        // Still going up or at address
-                        let distFromBall = hypot(headPos.x - ballPosition.x, headPos.y - ballPosition.y)
-                        phase = distFromBall < 0.1 ? .address : .backswing
+                // Frame differencing
+                for y in stride(from: 0, to: h, by: 3) {
+                    for x in stride(from: 0, to: w, by: 3) {
+                        let idx = y * w + x
+                        let diff = abs(Int(currGray[idx]) - Int(prev[idx]))
+                        let brightness = Int(currGray[idx])
+
+                        // Dark (< 80) AND significant motion (> 25)
+                        guard diff > 25 && brightness < 80 else { continue }
+
+                        // Within swing arc (circle around pivot, excluding body core)
+                        let dx = x - pivotX
+                        let dy = y - pivotY
+                        let distPivot = Int(sqrt(Double(dx * dx + dy * dy)))
+                        guard distPivot > Int(Double(h) * 0.06) &&
+                              distPivot < Int(Double(h) * 0.45) else { continue }
+
+                        // Left 65% of frame, not watermark
+                        guard x < Int(Double(w) * 0.65) && y < Int(Double(h) * 0.93) else { continue }
+
+                        if timeBins[timeBin] == nil { timeBins[timeBin] = [] }
+                        timeBins[timeBin]?.append((x: x, y: y, motion: Float(diff)))
                     }
+                }
+            }
+
+            prevGray = currGray
+            t += sampleInterval
+        }
+
+        // Extract arc: for each time bin, find the tip (furthest from pivot with continuity)
+        let sortedTimes = timeBins.keys.sorted()
+        var detections: [ClubHeadDetection] = []
+        var prevPos = (x: ballX, y: ballY)
+
+        for binTime in sortedTimes {
+            guard let pts = timeBins[binTime], pts.count >= 3 else { continue }
+
+            var bestX = 0, bestY = 0, bestScore: Float = 0
+            var count = 0
+
+            for pt in pts {
+                let dx = Float(pt.x - pivotX)
+                let dy = Float(pt.y - pivotY)
+                let distPivot = sqrt(dx * dx + dy * dy)
+
+                let dpx = Float(pt.x - prevPos.x)
+                let dpy = Float(pt.y - prevPos.y)
+                let distPrev = sqrt(dpx * dpx + dpy * dpy)
+
+                // Score: far from pivot + high motion + near previous
+                var score = distPivot * 0.5 + pt.motion * 2.0
+                if distPrev < 200 {
+                    score += 50
                 } else {
-                    phase = .address
+                    score *= 0.1
                 }
 
-                detections.append(ClubHeadDetection(
-                    position: headPos,
-                    frameTime: currentSeconds,
-                    phase: phase
-                ))
-                prevHeadPos = headPos
-            }
-
-            time += frameInterval
-        }
-
-        // Post-process: fix phase classification
-        // Find the highest point (smallest y) = transition from backswing to downswing
-        if let topIdx = detections.enumerated().min(by: { $0.element.position.y < $1.element.position.y })?.offset {
-            var corrected: [ClubHeadDetection] = []
-            for (i, det) in detections.enumerated() {
-                let phase: SwingPhase
-                if det.frameTime >= impactSeconds {
-                    phase = .postImpact
-                } else if i <= topIdx {
-                    phase = i < 2 ? .address : .backswing
-                } else {
-                    phase = .downswing
-                }
-                corrected.append(ClubHeadDetection(
-                    position: det.position,
-                    frameTime: det.frameTime,
-                    phase: phase
-                ))
-            }
-            return corrected
-        }
-
-        return detections
-    }
-
-    // MARK: - Club Head Detection
-
-    /// Detect the club head (dark, compact object) in a frame.
-    /// Club head is typically the darkest compact object near the ball or in the swing arc.
-    private static func detectClubHead(
-        in image: CGImage,
-        ballPosition: CGPoint,
-        previousHead: CGPoint?
-    ) -> CGPoint? {
-        let width = image.width
-        let height = image.height
-
-        guard let data = image.dataProvider?.data,
-              let ptr = CFDataGetBytePtr(data) else { return nil }
-
-        let bytesPerPixel = image.bitsPerPixel / 8
-        let bytesPerRow = image.bytesPerRow
-        let dataLength = CFDataGetLength(data)
-
-        // Search area: around the ball position, expanding for backswing
-        // Club head moves from ball level up to above the golfer's head
-        let ballX = Int(ballPosition.x * CGFloat(width))
-        let ballY = Int(ballPosition.y * CGFloat(height))
-
-        let searchLeft: Int
-        let searchRight: Int
-        let searchTop: Int
-        let searchBottom: Int
-
-        if let prev = previousHead {
-            // Search around previous position (club head doesn't jump far between frames)
-            let px = Int(prev.x * CGFloat(width))
-            let py = Int(prev.y * CGFloat(height))
-            let searchRadius = width / 4
-            searchLeft = max(0, px - searchRadius)
-            searchRight = min(width, px + searchRadius)
-            searchTop = max(0, py - searchRadius)
-            searchBottom = min(height, py + searchRadius)
-        } else {
-            // Initial: search around ball position (club head is near ball at address)
-            let searchRadius = width / 5
-            searchLeft = max(0, ballX - searchRadius)
-            searchRight = min(width, ballX + searchRadius)
-            searchTop = max(0, ballY - height / 2)
-            searchBottom = min(height, ballY + searchRadius / 2)
-        }
-
-        // Find darkest compact cluster (club head is dark/black)
-        var bestX = 0
-        var bestY = 0
-        var bestDarkness = 255
-        let step = 4
-
-        for y in stride(from: searchTop, to: searchBottom, by: step) {
-            for x in stride(from: searchLeft, to: searchRight, by: step) {
-                let offset = y * bytesPerRow + x * bytesPerPixel
-                guard offset + 2 < dataLength else { continue }
-
-                let r = Int(ptr[offset])
-                let g = Int(ptr[offset + 1])
-                let b = Int(ptr[offset + 2])
-                let brightness = (r + g + b) / 3
-
-                // Club head: very dark (<60) compact object
-                guard brightness < 60 else { continue }
-
-                // Measure dark cluster
-                let cluster = measureDarkCluster(
-                    ptr: ptr, cx: x, cy: y,
-                    width: width, height: height,
-                    bytesPerRow: bytesPerRow,
-                    bytesPerPixel: bytesPerPixel,
-                    dataLength: dataLength
-                )
-
-                // Club head size: roughly 10-50px cluster
-                guard cluster >= 5 && cluster <= 40 else { continue }
-
-                // Check surrounding is lighter (contrast)
-                let surround = measureSurroundBrightness(
-                    ptr: ptr, cx: x, cy: y,
-                    width: width, height: height,
-                    bytesPerRow: bytesPerRow,
-                    bytesPerPixel: bytesPerPixel,
-                    dataLength: dataLength
-                )
-
-                if surround > brightness + 30 && brightness < bestDarkness {
-                    bestDarkness = brightness
-                    bestX = x
-                    bestY = y
+                if score > bestScore {
+                    bestScore = score
+                    bestX += pt.x
+                    bestY += pt.y
+                    count += 1
+                    if count > 5 { break } // take top candidates
                 }
             }
+
+            guard bestScore > 30, count > 0 else { continue }
+            let tipX = bestX / count
+            let tipY = bestY / count
+
+            let distPivot = sqrt(Float((tipX - pivotX) * (tipX - pivotX) + (tipY - pivotY) * (tipY - pivotY)))
+            guard distPivot > 50 else { continue }
+
+            detections.append(ClubHeadDetection(
+                position: CGPoint(x: CGFloat(tipX) / CGFloat(w),
+                                  y: CGFloat(tipY) / CGFloat(h)),
+                frameTime: binTime,
+                phase: .address
+            ))
+            prevPos = (x: tipX, y: tipY)
         }
 
-        guard bestDarkness < 60 else { return nil }
+        // Phase classification
+        guard detections.count >= 3 else { return detections }
 
-        return CGPoint(
-            x: CGFloat(bestX) / CGFloat(width),
-            y: CGFloat(bestY) / CGFloat(height)
-        )
+        // Find top of swing (minimum y)
+        let yValues = detections.map { $0.position.y }
+        var smoothY = [CGFloat]()
+        let window = 3
+        for i in 0..<yValues.count {
+            let s = max(0, i - window / 2)
+            let e = min(yValues.count, i + window / 2 + 1)
+            let avg = yValues[s..<e].reduce(0, +) / CGFloat(e - s)
+            smoothY.append(avg)
+        }
+        let topIdx = smoothY.enumerated().min(by: { $0.element < $1.element })?.offset ?? 0
+
+        var classified: [ClubHeadDetection] = []
+        for (i, det) in detections.enumerated() {
+            let phase: SwingPhase
+            if det.frameTime >= impactSeconds - 0.03 {
+                phase = .postImpact
+            } else if i < 2 {
+                phase = .address
+            } else if i <= topIdx {
+                phase = .backswing
+            } else {
+                phase = .downswing
+            }
+            classified.append(ClubHeadDetection(
+                position: det.position,
+                frameTime: det.frameTime,
+                phase: phase
+            ))
+        }
+
+        return classified
     }
 
-    private static func measureDarkCluster(
-        ptr: UnsafePointer<UInt8>, cx: Int, cy: Int,
-        width: Int, height: Int,
-        bytesPerRow: Int, bytesPerPixel: Int,
-        dataLength: Int
-    ) -> Int {
-        var count = 0
-        let radius = 15
-        for dy in stride(from: -radius, through: radius, by: 3) {
-            for dx in stride(from: -radius, through: radius, by: 3) {
-                let px = cx + dx, py = cy + dy
-                guard px >= 0, px < width, py >= 0, py < height else { continue }
-                let offset = py * bytesPerRow + px * bytesPerPixel
-                guard offset + 2 < dataLength else { continue }
-                let brightness = (Int(ptr[offset]) + Int(ptr[offset+1]) + Int(ptr[offset+2])) / 3
-                if brightness < 60 { count += 1 }
-            }
-        }
-        return count
-    }
+    // MARK: - Grayscale conversion
 
-    private static func measureSurroundBrightness(
-        ptr: UnsafePointer<UInt8>, cx: Int, cy: Int,
-        width: Int, height: Int,
-        bytesPerRow: Int, bytesPerPixel: Int,
-        dataLength: Int
-    ) -> Int {
-        var total = 0, count = 0
-        let radius = 25
-        for dy in stride(from: -radius, through: radius, by: 5) {
-            for dx in stride(from: -radius, through: radius, by: 5) {
-                guard abs(dx) + abs(dy) >= radius / 2 else { continue }
-                let px = cx + dx, py = cy + dy
-                guard px >= 0, px < width, py >= 0, py < height else { continue }
-                let offset = py * bytesPerRow + px * bytesPerPixel
-                guard offset + 2 < dataLength else { continue }
-                total += (Int(ptr[offset]) + Int(ptr[offset+1]) + Int(ptr[offset+2])) / 3
-                count += 1
-            }
-        }
-        return count > 0 ? total / count : 0
+    private static func grayscalePixels(from image: CGImage, width: Int, height: Int) -> [UInt8]? {
+        var pixels = [UInt8](repeating: 0, count: width * height)
+        guard let context = CGContext(
+            data: &pixels,
+            width: width,
+            height: height,
+            bitsPerComponent: 8,
+            bytesPerRow: width,
+            space: CGColorSpaceCreateDeviceGray(),
+            bitmapInfo: CGImageAlphaInfo.none.rawValue
+        ) else { return nil }
+        context.draw(image, in: CGRect(x: 0, y: 0, width: width, height: height))
+        return pixels
     }
 }
