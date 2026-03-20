@@ -24,6 +24,9 @@ struct ShotRecord: Codable, Identifiable {
     // Shot metrics
     var metrics: ShotMetrics?
 
+    // Body pose swing metrics (from VNDetectHumanBodyPose3D)
+    var swingMetrics: SwingMetrics?
+
     // Thumbnail
     var thumbnailFileName: String?
 

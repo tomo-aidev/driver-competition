@@ -193,6 +193,7 @@ struct ShotDetailView: View {
             LinearGradient(colors: [.clear, .black.opacity(0.7)], startPoint: .top, endPoint: .bottom)
                 .frame(height: 60)
 
+            // Row 1: Shot metrics
             HStack(spacing: 0) {
                 if let impact = shot.impactTimeSeconds {
                     metricTile(
@@ -214,13 +215,6 @@ struct ShotDetailView: View {
                     }
 
                     metricTile(
-                        value: "\(metrics.detectedFrameCount)",
-                        label: "DETECTED",
-                        icon: "eye.fill",
-                        color: .green
-                    )
-
-                    metricTile(
                         value: String(format: "%.0f%%", metrics.analysisConfidence * 100),
                         label: "CONFIDENCE",
                         icon: "chart.bar.fill",
@@ -228,6 +222,54 @@ struct ShotDetailView: View {
                     )
                 }
             }
+
+            // Row 2: Body pose swing metrics
+            if let sm = shot.swingMetrics {
+                Divider().background(AppTheme.outlineVariant.opacity(0.3))
+                    .padding(.horizontal, 16)
+
+                HStack(spacing: 0) {
+                    if let tempo = sm.tempoRatio {
+                        metricTile(
+                            value: String(format: "%.1f:1", tempo),
+                            label: "TEMPO",
+                            icon: "metronome.fill",
+                            color: .orange
+                        )
+                    }
+
+                    if let xFactor = sm.xFactor {
+                        metricTile(
+                            value: String(format: "%.0f°", xFactor),
+                            label: "X-FACTOR",
+                            icon: "arrow.triangle.2.circlepath",
+                            color: .purple
+                        )
+                    }
+
+                    if let spine = sm.spineAngleAtAddress {
+                        metricTile(
+                            value: String(format: "%.0f°", spine),
+                            label: "SPINE",
+                            icon: "figure.stand",
+                            color: .mint
+                        )
+                    }
+
+                    if let head = sm.headMovementTotal {
+                        metricTile(
+                            value: String(format: "%.2f", head),
+                            label: "HEAD",
+                            icon: "circle.dotted",
+                            color: head < 0.05 ? .green : .yellow
+                        )
+                    }
+                }
+            }
+
+            // Padding
+            Color.clear.frame(height: 16)
+
             .padding(.horizontal, 16)
             .padding(.bottom, 40)
             .background(.black.opacity(0.7))

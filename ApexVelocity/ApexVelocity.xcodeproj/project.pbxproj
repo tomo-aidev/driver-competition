@@ -41,6 +41,7 @@
 		5CA542AD5426411D8D65A102 /* PostProcessAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4885CD09AB9441669B3849E9 /* PostProcessAnalyzer.swift */; };
 		C3DD45EB6BC5447A9A783B08 /* HistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C8E098BAF214E688AF8188B /* HistoryView.swift */; };
 		F968C10F346C4AC690FC5085 /* ShotDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FE18063264648D587E00EDB /* ShotDetailView.swift */; };
+		F790B96FD8844DD8830EDDA1 /* BodyPoseAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C52DFFAA13F4F7CA1FCE3E1 /* BodyPoseAnalyzer.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -85,6 +86,7 @@
 		4885CD09AB9441669B3849E9 /* PostProcessAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostProcessAnalyzer.swift; sourceTree = "<group>"; };
 		7C8E098BAF214E688AF8188B /* HistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryView.swift; sourceTree = "<group>"; };
 		1FE18063264648D587E00EDB /* ShotDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShotDetailView.swift; sourceTree = "<group>"; };
+		8C52DFFAA13F4F7CA1FCE3E1 /* BodyPoseAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BodyPoseAnalyzer.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXContainerItemProxy section */
@@ -203,6 +205,7 @@
 				A20000010000000000000047 /* TrajectoryPredictor.swift */,
 				A20000010000000000000048 /* KalmanFilter.swift */,
 				4885CD09AB9441669B3849E9 /* PostProcessAnalyzer.swift */,
+				8C52DFFAA13F4F7CA1FCE3E1 /* BodyPoseAnalyzer.swift */,
 				A20000010000000000000050 /* SwingAnalyzer.swift */,
 			);
 			path = Analysis;
@@ -386,6 +389,7 @@
 				5CA542AD5426411D8D65A102 /* PostProcessAnalyzer.swift in Sources */,
 				C3DD45EB6BC5447A9A783B08 /* HistoryView.swift in Sources */,
 				F968C10F346C4AC690FC5085 /* ShotDetailView.swift in Sources */,
+				F790B96FD8844DD8830EDDA1 /* BodyPoseAnalyzer.swift in Sources */,
 );
 			runOnlyForDeploymentPostprocessing = 0;
 		};

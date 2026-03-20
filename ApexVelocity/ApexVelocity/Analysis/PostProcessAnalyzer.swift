@@ -147,6 +147,27 @@ final class PostProcessAnalyzer: ObservableObject {
             analysisConfidence: mergedDetections.count >= 3 ? 0.8 : 0.4
         )
 
+        // Stage 6: Body pose analysis (bonus stage)
+        statusMessage = String(localized: "analyzing_body_pose", defaultValue: "Analyzing body pose...")
+        do {
+            let poseResult: (poses: [PoseSnapshot], metrics: SwingMetrics)
+            if #available(iOS 17.0, *) {
+                poseResult = try await BodyPoseAnalyzer.analyze(from: asset, impactTime: impact)
+            } else {
+                poseResult = try await BodyPoseAnalyzer.analyze2D(from: asset, impactTime: impact)
+            }
+            record.swingMetrics = poseResult.metrics
+            print("[PostProcess] Body pose: \(poseResult.poses.count) snapshots")
+            if let tempo = poseResult.metrics.tempoRatio {
+                print("[PostProcess] Tempo ratio: \(String(format: "%.1f", tempo)):1")
+            }
+            if let xFactor = poseResult.metrics.xFactor {
+                print("[PostProcess] X-Factor: \(String(format: "%.1f", xFactor))°")
+            }
+        } catch {
+            print("[PostProcess] Body pose error: \(error)")
+        }
+
         progress = 1.0
         status = .completed
         record.analysisStatus = .completed
