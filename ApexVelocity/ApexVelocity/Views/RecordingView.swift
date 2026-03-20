@@ -3,9 +3,16 @@ import SwiftUI
 struct RecordingView: View {
     @ObservedObject var cameraManager: HighFPSCameraManager
     @ObservedObject var ballTracker: BallTracker
+    @ObservedObject var motionManager: DeviceMotionManager
+    @ObservedObject var shotStore: ShotStore
+    var switchToHistory: (() -> Void)?
 
+    @StateObject private var analyzer = PostProcessAnalyzer()
     @State private var elapsedTime: TimeInterval = 0
     @State private var timer: Timer?
+    @State private var ballPosition: CGPoint = .zero
+    @State private var showSavedBanner = false
+    @State private var isSaving = false
 
     var body: some View {
         ZStack {
@@ -43,8 +50,24 @@ struct RecordingView: View {
                 cameraPermissionView
             }
 
-            // Golfer guide overlay (center)
-            GolferGuideOverlay(isRecording: cameraManager.isRecording)
+            // Setup guide: angle indicator + ball position target
+            GeometryReader { geo in
+                SetupGuideOverlay(
+                    isRecording: cameraManager.isRecording,
+                    pitchDegrees: motionManager.pitchDegrees,
+                    isAngleGood: motionManager.isAngleGood,
+                    ballPosition: $ballPosition
+                )
+                .onAppear {
+                    // Fixed position: bottom-center, above record button
+                    ballPosition = CGPoint(
+                        x: geo.size.width / 2,
+                        y: geo.size.height * 0.72
+                    )
+                    // Pass view size to tracker for coordinate conversion
+                    ballTracker.setViewSize(geo.size)
+                }
+            }
 
             // Top bar
             VStack {
@@ -56,6 +79,46 @@ struct RecordingView: View {
             VStack {
                 Spacer()
                 bottomControls
+            }
+
+            // Saved banner
+            if showSavedBanner {
+                VStack {
+                    Spacer()
+                    HStack(spacing: 8) {
+                        if analyzer.status == .analyzing {
+                            ProgressView()
+                                .scaleEffect(0.7)
+                                .tint(AppTheme.primaryFixed)
+                            Text(analyzer.statusMessage)
+                        } else if analyzer.status == .completed {
+                            Image(systemName: "checkmark.circle.fill")
+                                .foregroundStyle(AppTheme.primaryFixed)
+                            Text(String(localized: "shot_saved", defaultValue: "Shot saved & analyzed"))
+                        } else {
+                            Image(systemName: "checkmark.circle.fill")
+                                .foregroundStyle(AppTheme.primaryFixed)
+                            Text(String(localized: "shot_saving", defaultValue: "Saving..."))
+                        }
+                    }
+                    .font(.custom("Inter-Medium", size: 13, relativeTo: .caption))
+                    .foregroundStyle(AppTheme.onSurface)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 10)
+                    .background(AppTheme.surfaceContainerLowest.opacity(0.9))
+                    .clipShape(Capsule())
+                    .padding(.bottom, 160)
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+                }
+                .animation(.easeInOut, value: analyzer.status)
+            }
+
+            // Saving spinner
+            if isSaving {
+                Color.black.opacity(0.4).ignoresSafeArea()
+                ProgressView()
+                    .scaleEffect(1.5)
+                    .tint(.white)
             }
 
             // FPS indicator (small, bottom-right corner, recording only)
@@ -74,9 +137,11 @@ struct RecordingView: View {
         }
         .onAppear {
             cameraManager.requestPermission()
+            motionManager.startMonitoring()
         }
         .onDisappear {
             stopTimer()
+            motionManager.stopMonitoring()
         }
     }
 
@@ -227,16 +292,48 @@ struct RecordingView: View {
     private var recordButton: some View {
         Button {
             if cameraManager.isRecording {
-                cameraManager.stopRecording()
-                stopTimer()
-                // Keep trajectory visible briefly before clearing
-                DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-                    ballTracker.reset()
-                    cameraManager.ballDetector?.reset()
+                isSaving = true
+                cameraManager.stopRecording { [self] videoURL in
+                    stopTimer()
+                    guard let videoURL else {
+                        isSaving = false
+                        return
+                    }
+
+                    // Save to ShotStore and start background analysis
+                    Task { @MainActor in
+                        do {
+                            var record = try await shotStore.saveShot(from: videoURL)
+                            showSavedBanner = true
+                            isSaving = false
+
+                            // Start background analysis
+                            await analyzer.analyze(
+                                videoURL: shotStore.videoURL(for: record),
+                                record: &record
+                            )
+                            shotStore.updateShot(record)
+                        } catch {
+                            print("[Recording] Save failed: \(error)")
+                            isSaving = false
+                        }
+                    }
+
+                    // Clear trajectory after brief display
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                        ballTracker.reset()
+                        cameraManager.ballDetector?.reset()
+                    }
                 }
             } else {
                 ballTracker.reset()
                 cameraManager.ballDetector?.reset()
+                showSavedBanner = false
+                cameraManager.ballDetector?.ballScreenPosition = ballPosition
+                if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                   let window = windowScene.windows.first {
+                    cameraManager.ballDetector?.screenSize = window.bounds.size
+                }
                 cameraManager.startRecording()
                 startTimer()
             }

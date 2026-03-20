@@ -13,13 +13,45 @@
 
 /* Guide & Detection */
 "ball_position" = "ボール位置";
-"l_handed" = "左打ち";
-"r_handed" = "右打ち";
+"drag_to_adjust" = "ドラッグで調整";
+"angle_good" = "角度OK";
+"angle_tilt_up" = "もう少し上に";
+"angle_tilt_down" = "もう少し下に";
 "album" = "アルバム";
 "menu" = "メニュー";
 "settings" = "設定";
 "detection_loading" = "モデル読み込み中...";
 "no_ball_detected" = "ボール未検出";
+
+/* Tab Bar */
+"tab_record" = "録画";
+"tab_analysis" = "分析";
+
+/* Analysis */
+"select_video" = "動画を選択";
+"analysis_description" = "ゴルフスイングの動画をアップロードして弾道を解析します";
+"analyzing" = "分析中...";
+"detecting_impact" = "インパクト検出中...";
+"tracking_ball" = "ボール追跡中...";
+"predicting_trajectory" = "弾道予測中...";
+"analysis_complete" = "分析完了";
+"analysis_failed" = "分析に失敗しました";
+"retry" = "再試行";
+"cancel" = "キャンセル";
+"new_analysis" = "新規分析";
+"launch_angle" = "打ち出し角";
+"ball_speed" = "ボールスピード";
+"shot_shape" = "球筋";
+"detecting_ball" = "ゴルフボールを検出中...";
+"ball_found_title" = "ゴルフボールを検出しました";
+"ball_not_found_title" = "ゴルフボールが見つかりません";
+"ball_not_found_message" = "動画内にゴルフボールを検出できませんでした。ボールが地面上に見える状態か確認してください。";
+"detect_impact_button" = "インパクト音を検出";
+"impact_found_title" = "インパクトを検出しました";
+"impact_time_label" = "動画内のインパクト時刻";
+"impact_not_found_title" = "インパクトを検出できません";
+"impact_not_found_message" = "インパクト音を検出できませんでした。クラブがボールに当たる音が収録されているか確認してください。";
+"select_other" = "別の動画";
 
 /* Info.plist */
 "NSCameraUsageDescription" = "ゴルフスイングのハイスピード撮影にカメラを使用します。";

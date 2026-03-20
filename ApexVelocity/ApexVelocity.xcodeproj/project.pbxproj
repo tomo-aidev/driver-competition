@@ -21,9 +21,26 @@
 		A10000010000000000000031 /* BallDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000031; };
 		A10000010000000000000032 /* BallTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000032; };
 		A10000010000000000000033 /* GolferGuideOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000033; };
+		A10000010000000000000034 /* DeviceMotionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000034; };
+		A10000010000000000000040 /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000040; };
+		A10000010000000000000041 /* AnalysisView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000041; };
+		A10000010000000000000042 /* VideoPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000042; };
+		A10000010000000000000043 /* VideoPlayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000043; };
+		A10000010000000000000044 /* VideoAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000044; };
+		A10000010000000000000045 /* ImpactDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000045; };
+		A10000010000000000000046 /* FrameDifferenceDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000046; };
+		A10000010000000000000047 /* TrajectoryPredictor.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000047; };
+		A10000010000000000000048 /* KalmanFilter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000048; };
+		A10000010000000000000049 /* TrajectoryRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000049; };
+		A10000010000000000000050 /* SwingAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000050; };
 		C10000010000000000000001 /* DetectionTypesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20000010000000000000001; };
 		C10000010000000000000002 /* BallDetectorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20000010000000000000002; };
 		C10000010000000000000003 /* BallTrackerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20000010000000000000003; };
+		0E0F9592E85D4AF983AE128D /* ShotRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = 263218493B064D92ADDB8F13 /* ShotRecord.swift */; };
+		E1D3B9D855D548259C83E6C0 /* ShotStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12B2C7C237A6422188616CEB /* ShotStore.swift */; };
+		5CA542AD5426411D8D65A102 /* PostProcessAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4885CD09AB9441669B3849E9 /* PostProcessAnalyzer.swift */; };
+		C3DD45EB6BC5447A9A783B08 /* HistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C8E098BAF214E688AF8188B /* HistoryView.swift */; };
+		F968C10F346C4AC690FC5085 /* ShotDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FE18063264648D587E00EDB /* ShotDetailView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -46,11 +63,28 @@
 		A20000010000000000000031 /* BallDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BallDetector.swift; sourceTree = "<group>"; };
 		A20000010000000000000032 /* BallTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BallTracker.swift; sourceTree = "<group>"; };
 		A20000010000000000000033 /* GolferGuideOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GolferGuideOverlay.swift; sourceTree = "<group>"; };
+		A20000010000000000000034 /* DeviceMotionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceMotionManager.swift; sourceTree = "<group>"; };
+		A20000010000000000000040 /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
+		A20000010000000000000041 /* AnalysisView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalysisView.swift; sourceTree = "<group>"; };
+		A20000010000000000000042 /* VideoPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoPicker.swift; sourceTree = "<group>"; };
+		A20000010000000000000043 /* VideoPlayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoPlayerView.swift; sourceTree = "<group>"; };
+		A20000010000000000000044 /* VideoAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoAnalyzer.swift; sourceTree = "<group>"; };
+		A20000010000000000000045 /* ImpactDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImpactDetector.swift; sourceTree = "<group>"; };
+		A20000010000000000000046 /* FrameDifferenceDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FrameDifferenceDetector.swift; sourceTree = "<group>"; };
+		A20000010000000000000047 /* TrajectoryPredictor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrajectoryPredictor.swift; sourceTree = "<group>"; };
+		A20000010000000000000048 /* KalmanFilter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KalmanFilter.swift; sourceTree = "<group>"; };
+		A20000010000000000000049 /* TrajectoryRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrajectoryRenderer.swift; sourceTree = "<group>"; };
+		A20000010000000000000050 /* SwingAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwingAnalyzer.swift; sourceTree = "<group>"; };
 		A30000010000000000000001 /* ApexVelocity.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ApexVelocity.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		C20000010000000000000001 /* DetectionTypesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetectionTypesTests.swift; sourceTree = "<group>"; };
 		C20000010000000000000002 /* BallDetectorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BallDetectorTests.swift; sourceTree = "<group>"; };
 		C20000010000000000000003 /* BallTrackerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BallTrackerTests.swift; sourceTree = "<group>"; };
 		C30000010000000000000001 /* ApexVelocityTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ApexVelocityTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		263218493B064D92ADDB8F13 /* ShotRecord.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShotRecord.swift; sourceTree = "<group>"; };
+		12B2C7C237A6422188616CEB /* ShotStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShotStore.swift; sourceTree = "<group>"; };
+		4885CD09AB9441669B3849E9 /* PostProcessAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostProcessAnalyzer.swift; sourceTree = "<group>"; };
+		7C8E098BAF214E688AF8188B /* HistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryView.swift; sourceTree = "<group>"; };
+		1FE18063264648D587E00EDB /* ShotDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShotDetailView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXContainerItemProxy section */
@@ -96,7 +130,10 @@
 				A50000010000000000000003 /* App */,
 				A50000010000000000000004 /* Camera */,
 				A50000010000000000000008 /* Detection */,
+				A50000010000000000000010A /* Analysis */,
+				FB2AEF986674463EBD3C1AC3 /* Models */,
 				A50000010000000000000009 /* Overlay */,
+				A50000010000000000000010B /* Rendering */,
 				A50000010000000000000005 /* Views */,
 				A50000010000000000000006 /* Theme */,
 				A50000010000000000000007 /* Resources */,
@@ -118,6 +155,7 @@
 			children = (
 				A20000010000000000000005 /* HighFPSCameraManager.swift */,
 				A20000010000000000000006 /* CameraPreviewView.swift */,
+				A20000010000000000000034 /* DeviceMotionManager.swift */,
 			);
 			path = Camera;
 			sourceTree = "<group>";
@@ -128,6 +166,12 @@
 				A20000010000000000000002 /* ContentView.swift */,
 				A20000010000000000000003 /* SplashView.swift */,
 				A20000010000000000000004 /* RecordingView.swift */,
+				A20000010000000000000040 /* MainTabView.swift */,
+				A20000010000000000000041 /* AnalysisView.swift */,
+				A20000010000000000000042 /* VideoPicker.swift */,
+				7C8E098BAF214E688AF8188B /* HistoryView.swift */,
+				1FE18063264648D587E00EDB /* ShotDetailView.swift */,
+				A20000010000000000000043 /* VideoPlayerView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -148,6 +192,28 @@
 				A20000010000000000000020 /* InfoPlist.strings */,
 			);
 			path = Resources;
+			sourceTree = "<group>";
+		};
+		A50000010000000000000010A /* Analysis */ = {
+			isa = PBXGroup;
+			children = (
+				A20000010000000000000044 /* VideoAnalyzer.swift */,
+				A20000010000000000000045 /* ImpactDetector.swift */,
+				A20000010000000000000046 /* FrameDifferenceDetector.swift */,
+				A20000010000000000000047 /* TrajectoryPredictor.swift */,
+				A20000010000000000000048 /* KalmanFilter.swift */,
+				4885CD09AB9441669B3849E9 /* PostProcessAnalyzer.swift */,
+				A20000010000000000000050 /* SwingAnalyzer.swift */,
+			);
+			path = Analysis;
+			sourceTree = "<group>";
+		};
+		A50000010000000000000010B /* Rendering */ = {
+			isa = PBXGroup;
+			children = (
+				A20000010000000000000049 /* TrajectoryRenderer.swift */,
+			);
+			path = Rendering;
 			sourceTree = "<group>";
 		};
 		A50000010000000000000008 /* Detection */ = {
@@ -185,6 +251,15 @@
 				C30000010000000000000001 /* ApexVelocityTests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		FB2AEF986674463EBD3C1AC3 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				263218493B064D92ADDB8F13 /* ShotRecord.swift */,
+				12B2C7C237A6422188616CEB /* ShotStore.swift */,
+			);
+			path = Models;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -294,7 +369,24 @@
 				A10000010000000000000031 /* BallDetector.swift in Sources */,
 				A10000010000000000000032 /* BallTracker.swift in Sources */,
 				A10000010000000000000033 /* GolferGuideOverlay.swift in Sources */,
-			);
+				A10000010000000000000034 /* DeviceMotionManager.swift in Sources */,
+				A10000010000000000000040 /* MainTabView.swift in Sources */,
+				A10000010000000000000041 /* AnalysisView.swift in Sources */,
+				A10000010000000000000042 /* VideoPicker.swift in Sources */,
+				A10000010000000000000043 /* VideoPlayerView.swift in Sources */,
+				A10000010000000000000044 /* VideoAnalyzer.swift in Sources */,
+				A10000010000000000000045 /* ImpactDetector.swift in Sources */,
+				A10000010000000000000046 /* FrameDifferenceDetector.swift in Sources */,
+				A10000010000000000000047 /* TrajectoryPredictor.swift in Sources */,
+				A10000010000000000000048 /* KalmanFilter.swift in Sources */,
+				A10000010000000000000049 /* TrajectoryRenderer.swift in Sources */,
+				A10000010000000000000050 /* SwingAnalyzer.swift in Sources */,
+							0E0F9592E85D4AF983AE128D /* ShotRecord.swift in Sources */,
+				E1D3B9D855D548259C83E6C0 /* ShotStore.swift in Sources */,
+				5CA542AD5426411D8D65A102 /* PostProcessAnalyzer.swift in Sources */,
+				C3DD45EB6BC5447A9A783B08 /* HistoryView.swift in Sources */,
+				F968C10F346C4AC690FC5085 /* ShotDetailView.swift in Sources */,
+);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		C70000010000000000000001 /* Sources */ = {
@@ -463,7 +555,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = QCT6H2SS5N;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = ApexVelocity/Info.plist;
@@ -497,7 +589,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = QCT6H2SS5N;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = ApexVelocity/Info.plist;

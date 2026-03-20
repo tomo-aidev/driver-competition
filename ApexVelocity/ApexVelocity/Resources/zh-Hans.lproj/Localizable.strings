@@ -13,13 +13,35 @@
 
 /* Guide & Detection */
 "ball_position" = "球位置";
-"l_handed" = "左手";
-"r_handed" = "右手";
+"drag_to_adjust" = "拖动调整";
+"angle_good" = "角度合适";
+"angle_tilt_up" = "请向上倾斜";
+"angle_tilt_down" = "请向下倾斜";
 "album" = "相册";
 "menu" = "菜单";
 "settings" = "设置";
 "detection_loading" = "加载模型中...";
 "no_ball_detected" = "未检测到球";
+
+/* Tab Bar */
+"tab_record" = "录制";
+"tab_analysis" = "分析";
+
+/* Analysis */
+"select_video" = "选择视频";
+"analysis_description" = "上传高尔夫挥杆视频来分析弹道";
+"analyzing" = "分析中...";
+"detecting_impact" = "检测击球瞬间...";
+"tracking_ball" = "追踪球...";
+"predicting_trajectory" = "预测弹道...";
+"analysis_complete" = "分析完成";
+"analysis_failed" = "分析失败";
+"retry" = "重试";
+"cancel" = "取消";
+"new_analysis" = "新分析";
+"launch_angle" = "发射角度";
+"ball_speed" = "球速";
+"shot_shape" = "球路";
 
 /* Info.plist */
 "NSCameraUsageDescription" = "使用相机进行高速高尔夫挥杆拍摄。";

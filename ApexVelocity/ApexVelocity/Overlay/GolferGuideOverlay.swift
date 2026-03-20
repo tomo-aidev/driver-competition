@@ -1,58 +1,145 @@
 import SwiftUI
 
-/// Overlay showing golfer silhouettes and ball position guide
-/// Matches stitch _3 design: L-HANDED silhouette, ball position circle, R-HANDED silhouette
-struct GolferGuideOverlay: View {
+/// Setup guide overlay: fixed ball position target + vertical angle indicator on the right
+struct SetupGuideOverlay: View {
     var isRecording: Bool
+    var pitchDegrees: Double
+    var isAngleGood: Bool
+    @Binding var ballPosition: CGPoint
 
     @State private var pingScale: CGFloat = 1.0
     @State private var pingOpacity: Double = 0.6
 
     var body: some View {
-        VStack {
-            Spacer()
+        ZStack {
+            // Ball position target (fixed, user moves phone to align)
+            ballPositionTarget
+                .position(ballPosition)
 
-            HStack(spacing: 0) {
-                // L-HANDED silhouette
-                golferSilhouette(mirrored: false)
-                    .frame(maxWidth: .infinity)
-
-                // Ball position guide
-                ballPositionGuide
-                    .frame(width: 120)
-
-                // R-HANDED silhouette
-                golferSilhouette(mirrored: true)
-                    .frame(maxWidth: .infinity)
+            // Angle indicator (right side, near ball position)
+            VStack {
+                Spacer()
+                HStack {
+                    Spacer()
+                    verticalAngleIndicator
+                        .padding(.trailing, 24)
+                        .padding(.bottom, 160)
+                }
             }
-            .padding(.horizontal, 20)
-            .padding(.bottom, 160) // just above record button area
         }
         .opacity(isRecording ? 0 : 1)
         .animation(.easeInOut(duration: 0.4), value: isRecording)
         .allowsHitTesting(false)
     }
 
-    // MARK: - Ball Position Guide
+    // MARK: - Vertical Angle Indicator
 
-    private var ballPositionGuide: some View {
-        VStack(spacing: 12) {
+    private var verticalAngleIndicator: some View {
+        VStack(spacing: 8) {
+            // "Tilt up" label
+            Image(systemName: "chevron.up")
+                .font(.system(size: 10, weight: .bold))
+                .foregroundStyle(AppTheme.onSurfaceVariant.opacity(0.4))
+
+            // Vertical bar with current angle dot
+            ZStack {
+                // Track background
+                RoundedRectangle(cornerRadius: 3)
+                    .fill(AppTheme.surfaceContainerHighest.opacity(0.6))
+                    .frame(width: 6, height: 120)
+
+                // Good range (center zone)
+                RoundedRectangle(cornerRadius: 2)
+                    .fill(AppTheme.primaryFixed.opacity(0.15))
+                    .frame(width: 6, height: 30)
+                    .offset(y: -5) // slightly above center for 0-15° range
+
+                // Current angle dot
+                Circle()
+                    .fill(isAngleGood ? AppTheme.primaryFixed : AppTheme.secondary)
+                    .frame(width: 14, height: 14)
+                    .shadow(
+                        color: (isAngleGood ? AppTheme.primaryFixed : AppTheme.secondary).opacity(0.6),
+                        radius: 6
+                    )
+                    .offset(y: angleDotOffset)
+            }
+            .frame(width: 14, height: 120)
+
+            // "Tilt down" label
+            Image(systemName: "chevron.down")
+                .font(.system(size: 10, weight: .bold))
+                .foregroundStyle(AppTheme.onSurfaceVariant.opacity(0.4))
+
+            // Angle text
+            Text(String(format: "%.0f°", pitchDegrees))
+                .font(.custom("SpaceGrotesk-Bold", size: 13, relativeTo: .caption))
+                .foregroundStyle(isAngleGood ? AppTheme.primaryFixed : AppTheme.secondary)
+                .monospacedDigit()
+
+            // Status text
+            Text(angleStatusText)
+                .font(.custom("Inter-Medium", size: 9, relativeTo: .caption2))
+                .foregroundStyle(isAngleGood ? AppTheme.primaryFixed : AppTheme.secondary)
+        }
+        .padding(.vertical, 12)
+        .padding(.horizontal, 8)
+        .background(AppTheme.surfaceContainerLowest.opacity(0.7))
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(
+                    (isAngleGood ? AppTheme.primaryFixed : AppTheme.secondary).opacity(0.2),
+                    lineWidth: 1
+                )
+        )
+    }
+
+    /// Map pitch degrees to vertical offset on the bar.
+    /// Positive pitch (up) = dot moves up, negative = dot moves down.
+    private var angleDotOffset: CGFloat {
+        let clampedPitch = max(-30, min(30, pitchDegrees))
+        // -30° → +55 (bottom), 0° → -5 (near center), +30° → -55 (top)
+        return CGFloat(-clampedPitch / 30.0) * 55.0 - 5.0
+    }
+
+    private var angleStatusText: String {
+        if isAngleGood {
+            return String(localized: "angle_good", defaultValue: "OK")
+        } else if pitchDegrees < 80 {
+            return String(localized: "angle_tilt_up", defaultValue: "Tilt up")
+        } else {
+            return String(localized: "angle_tilt_down", defaultValue: "Tilt down")
+        }
+    }
+
+    // MARK: - Ball Position Target (Fixed)
+
+    private var ballPositionTarget: some View {
+        VStack(spacing: 8) {
             ZStack {
                 // Ping animation ring
                 Circle()
                     .stroke(AppTheme.primaryContainer.opacity(0.2), lineWidth: 1.5)
-                    .frame(width: 80 * pingScale, height: 80 * pingScale)
+                    .frame(width: 60 * pingScale, height: 60 * pingScale)
                     .opacity(pingOpacity)
 
-                // Main circle
+                // Crosshair circle
                 Circle()
-                    .stroke(AppTheme.primaryContainer.opacity(0.4), lineWidth: 2)
-                    .frame(width: 80, height: 80)
+                    .stroke(AppTheme.primaryFixed.opacity(0.6), lineWidth: 2)
+                    .frame(width: 60, height: 60)
 
-                // Arrow up
-                Image(systemName: "arrow.up")
-                    .font(.system(size: 32, weight: .medium))
-                    .foregroundStyle(AppTheme.primaryFixed)
+                // Crosshair lines
+                Group {
+                    Rectangle().frame(width: 1, height: 20)
+                    Rectangle().frame(width: 20, height: 1)
+                }
+                .foregroundStyle(AppTheme.primaryFixed.opacity(0.4))
+
+                // Center dot
+                Circle()
+                    .fill(AppTheme.primaryFixed)
+                    .frame(width: 6, height: 6)
             }
             .onAppear {
                 withAnimation(
@@ -69,107 +156,10 @@ struct GolferGuideOverlay: View {
                 .font(.custom("Inter-Medium", size: 9, relativeTo: .caption2))
                 .tracking(2)
                 .foregroundStyle(AppTheme.onSurfaceVariant)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 5)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 4)
                 .background(AppTheme.surfaceContainerLowest.opacity(0.7))
                 .clipShape(Capsule())
         }
-    }
-
-    // MARK: - Golfer Silhouette
-
-    private func golferSilhouette(mirrored: Bool) -> some View {
-        VStack(spacing: 6) {
-            GolferShape()
-                .stroke(Color.white.opacity(0.3), lineWidth: 0.8)
-                .frame(width: 80, height: 180)
-                .scaleEffect(x: mirrored ? -1 : 1, y: 1)
-
-            Text(mirrored
-                 ? String(localized: "r_handed", defaultValue: "R-HANDED")
-                 : String(localized: "l_handed", defaultValue: "L-HANDED"))
-                .font(.custom("Inter-Medium", size: 9, relativeTo: .caption2))
-                .tracking(2)
-                .foregroundStyle(AppTheme.onSurfaceVariant.opacity(0.5))
-        }
-    }
-}
-
-// MARK: - Golfer Shape (SwiftUI Path)
-
-/// Simplified golfer silhouette drawn with Path
-struct GolferShape: Shape {
-    func path(in rect: CGRect) -> Path {
-        var path = Path()
-        let w = rect.width
-        let h = rect.height
-
-        // Head
-        let headCenter = CGPoint(x: w * 0.45, y: h * 0.08)
-        let headRadius = w * 0.08
-        path.addEllipse(in: CGRect(
-            x: headCenter.x - headRadius,
-            y: headCenter.y - headRadius,
-            width: headRadius * 2,
-            height: headRadius * 2
-        ))
-
-        // Neck to shoulders
-        path.move(to: CGPoint(x: w * 0.45, y: h * 0.12))
-        path.addLine(to: CGPoint(x: w * 0.45, y: h * 0.18))
-
-        // Shoulders
-        path.move(to: CGPoint(x: w * 0.25, y: h * 0.18))
-        path.addLine(to: CGPoint(x: w * 0.65, y: h * 0.18))
-
-        // Torso
-        path.move(to: CGPoint(x: w * 0.45, y: h * 0.18))
-        path.addLine(to: CGPoint(x: w * 0.45, y: h * 0.42))
-
-        // Left arm (holding club)
-        path.move(to: CGPoint(x: w * 0.25, y: h * 0.18))
-        path.addQuadCurve(
-            to: CGPoint(x: w * 0.35, y: h * 0.38),
-            control: CGPoint(x: w * 0.18, y: h * 0.28)
-        )
-
-        // Right arm
-        path.move(to: CGPoint(x: w * 0.65, y: h * 0.18))
-        path.addQuadCurve(
-            to: CGPoint(x: w * 0.38, y: h * 0.38),
-            control: CGPoint(x: w * 0.60, y: h * 0.30)
-        )
-
-        // Hands together (grip)
-        path.move(to: CGPoint(x: w * 0.35, y: h * 0.38))
-        path.addLine(to: CGPoint(x: w * 0.38, y: h * 0.38))
-
-        // Club shaft
-        path.move(to: CGPoint(x: w * 0.36, y: h * 0.38))
-        path.addLine(to: CGPoint(x: w * 0.50, y: h * 0.68))
-
-        // Club head
-        path.move(to: CGPoint(x: w * 0.48, y: h * 0.67))
-        path.addLine(to: CGPoint(x: w * 0.55, y: h * 0.70))
-
-        // Left leg
-        path.move(to: CGPoint(x: w * 0.45, y: h * 0.42))
-        path.addQuadCurve(
-            to: CGPoint(x: w * 0.30, y: h * 0.72),
-            control: CGPoint(x: w * 0.38, y: h * 0.56)
-        )
-        // Left foot
-        path.addLine(to: CGPoint(x: w * 0.22, y: h * 0.74))
-
-        // Right leg
-        path.move(to: CGPoint(x: w * 0.45, y: h * 0.42))
-        path.addQuadCurve(
-            to: CGPoint(x: w * 0.55, y: h * 0.72),
-            control: CGPoint(x: w * 0.50, y: h * 0.56)
-        )
-        // Right foot
-        path.addLine(to: CGPoint(x: w * 0.63, y: h * 0.74))
-
-        return path
     }
 }

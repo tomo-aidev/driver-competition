@@ -21,6 +21,11 @@ final class HighFPSCameraManager: NSObject, ObservableObject {
     let captureSession = AVCaptureSession()
     private var videoDeviceInput: AVCaptureDeviceInput?
     private let videoDataOutput = AVCaptureVideoDataOutput()
+    private let movieFileOutput = AVCaptureMovieFileOutput()
+
+    /// URL of the last recorded video file
+    @Published private(set) var lastRecordedVideoURL: URL?
+    private var recordingCompletion: ((URL?) -> Void)?
 
     // MARK: - Background Queues
 
@@ -130,6 +135,18 @@ final class HighFPSCameraManager: NSObject, ObservableObject {
             captureSession.addOutput(videoDataOutput)
         }
 
+        // Add audio input for impact sound detection in saved video
+        if let audioDevice = AVCaptureDevice.default(for: .audio),
+           let audioInput = try? AVCaptureDeviceInput(device: audioDevice),
+           captureSession.canAddInput(audioInput) {
+            captureSession.addInput(audioInput)
+        }
+
+        // Add movie file output for saving recordings
+        if captureSession.canAddOutput(movieFileOutput) {
+            captureSession.addOutput(movieFileOutput)
+        }
+
         // Configure highest FPS
         configureHighestFPS(for: videoDevice)
 
@@ -230,15 +247,31 @@ final class HighFPSCameraManager: NSObject, ObservableObject {
         sessionQueue.async { [weak self] in
             guard let self else { return }
             self.recordedFrameCount = 0
+
+            // Start movie file recording
+            let tempDir = FileManager.default.temporaryDirectory
+            let fileName = "recording_\(UUID().uuidString).mov"
+            let outputURL = tempDir.appendingPathComponent(fileName)
+
+            // Remove existing file if any
+            try? FileManager.default.removeItem(at: outputURL)
+
+            self.movieFileOutput.startRecording(to: outputURL, recordingDelegate: self)
+
             DispatchQueue.main.async {
                 self.isRecording = true
+                self.lastRecordedVideoURL = nil
             }
         }
     }
 
-    func stopRecording() {
+    func stopRecording(completion: ((URL?) -> Void)? = nil) {
+        recordingCompletion = completion
         sessionQueue.async { [weak self] in
             guard let self else { return }
+            if self.movieFileOutput.isRecording {
+                self.movieFileOutput.stopRecording()
+            }
             DispatchQueue.main.async {
                 self.isRecording = false
             }
@@ -264,6 +297,24 @@ final class HighFPSCameraManager: NSObject, ObservableObject {
             DispatchQueue.main.async {
                 self.isSessionRunning = false
             }
+        }
+    }
+}
+
+// MARK: - AVCaptureFileOutputRecordingDelegate
+
+extension HighFPSCameraManager: AVCaptureFileOutputRecordingDelegate {
+    func fileOutput(_ output: AVCaptureFileOutput, didFinishRecordingTo outputFileURL: URL,
+                    from connections: [AVCaptureConnection], error: Error?) {
+        DispatchQueue.main.async { [weak self] in
+            if error == nil {
+                self?.lastRecordedVideoURL = outputFileURL
+                self?.recordingCompletion?(outputFileURL)
+            } else {
+                print("[Camera] Recording error: \(error?.localizedDescription ?? "unknown")")
+                self?.recordingCompletion?(nil)
+            }
+            self?.recordingCompletion = nil
         }
     }
 }

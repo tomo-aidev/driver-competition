@@ -13,13 +13,35 @@
 
 /* Guide & Detection */
 "ball_position" = "볼 위치";
-"l_handed" = "왼손잡이";
-"r_handed" = "오른손잡이";
+"drag_to_adjust" = "드래그하여 조정";
+"angle_good" = "좋은 각도";
+"angle_tilt_up" = "위로 기울이세요";
+"angle_tilt_down" = "아래로 기울이세요";
 "album" = "앨범";
 "menu" = "메뉴";
 "settings" = "설정";
 "detection_loading" = "모델 로딩 중...";
 "no_ball_detected" = "공이 감지되지 않음";
+
+/* Tab Bar */
+"tab_record" = "녹화";
+"tab_analysis" = "분석";
+
+/* Analysis */
+"select_video" = "동영상 선택";
+"analysis_description" = "골프 스윙 동영상을 업로드하여 탄도를 분석합니다";
+"analyzing" = "분석 중...";
+"detecting_impact" = "임팩트 감지 중...";
+"tracking_ball" = "볼 추적 중...";
+"predicting_trajectory" = "탄도 예측 중...";
+"analysis_complete" = "분석 완료";
+"analysis_failed" = "분석 실패";
+"retry" = "재시도";
+"cancel" = "취소";
+"new_analysis" = "새 분석";
+"launch_angle" = "발사 각도";
+"ball_speed" = "볼 스피드";
+"shot_shape" = "구질";
 
 /* Info.plist */
 "NSCameraUsageDescription" = "골프 스윙 고속 촬영을 위해 카메라를 사용합니다.";

@@ -7,7 +7,7 @@ struct ApexVelocityApp: App {
     var body: some Scene {
         WindowGroup {
             ZStack {
-                ContentView()
+                MainTabView()
                     .opacity(showSplash ? 0 : 1)
 
                 if showSplash {
@@ -21,7 +21,6 @@ struct ApexVelocityApp: App {
                     showSplash = false
                 }
             }
-            .preferredColorScheme(.dark)
         }
     }
 }

@@ -56,3 +56,5 @@ Secrets/
 
 # Claude
 .claude/
+*.MOV
+*.mov

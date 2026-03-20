@@ -24,6 +24,10 @@
 	<true/>
 	<key>NSCameraUsageDescription</key>
 	<string>Camera is used for high-speed golf swing capture.</string>
+	<key>NSMotionUsageDescription</key>
+	<string>Motion data is used to guide camera angle for optimal shot capture.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Photo library access is used to select golf swing videos for trajectory analysis.</string>
 	<key>UILaunchScreen</key>
 	<dict>
 		<key>UIColorName</key>

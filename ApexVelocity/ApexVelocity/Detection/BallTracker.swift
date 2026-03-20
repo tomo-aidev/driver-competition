@@ -16,6 +16,7 @@ final class BallTracker: ObservableObject {
     private var cancellables = Set<AnyCancellable>()
     private var lastNormalizedPosition: CGPoint?
     private weak var previewLayer: AVCaptureVideoPreviewLayer?
+    private var viewSize: CGSize = .zero
 
     // MARK: - Initialization
 
@@ -33,6 +34,11 @@ final class BallTracker: ObservableObject {
     /// Set the preview layer for coordinate conversion
     func setPreviewLayer(_ layer: AVCaptureVideoPreviewLayer) {
         self.previewLayer = layer
+    }
+
+    /// Set view size for fallback coordinate conversion (used in mock mode)
+    func setViewSize(_ size: CGSize) {
+        self.viewSize = size
     }
 
     // MARK: - Detection Processing
@@ -53,13 +59,18 @@ final class BallTracker: ObservableObject {
         }
         lastNormalizedPosition = normalizedPoint
 
-        // Convert to screen coordinates
+        // Convert normalized coordinates (0-1) to screen coordinates
         let screenPoint: CGPoint
-        if let layer = previewLayer {
+        if viewSize.width > 0 {
+            // Scale normalized to view size
+            screenPoint = CGPoint(
+                x: normalizedPoint.x * viewSize.width,
+                y: normalizedPoint.y * viewSize.height
+            )
+        } else if let layer = previewLayer {
+            // Use preview layer for real camera detections
             screenPoint = layer.layerPointConverted(fromCaptureDevicePoint: normalizedPoint)
         } else {
-            // Fallback: use normalized coordinates directly
-            // (will be scaled by the view's bounds)
             screenPoint = normalizedPoint
         }
 

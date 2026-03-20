@@ -13,13 +13,45 @@
 
 /* Guide & Detection */
 "ball_position" = "BALL POSITION";
-"l_handed" = "L-HANDED";
-"r_handed" = "R-HANDED";
+"drag_to_adjust" = "Drag to adjust";
+"angle_good" = "Good angle";
+"angle_tilt_up" = "Tilt up";
+"angle_tilt_down" = "Tilt down";
 "album" = "Album";
 "menu" = "Menu";
 "settings" = "Settings";
 "detection_loading" = "Loading model...";
 "no_ball_detected" = "No ball detected";
+
+/* Tab Bar */
+"tab_record" = "Record";
+"tab_analysis" = "Analysis";
+
+/* Analysis */
+"select_video" = "Select Video";
+"analysis_description" = "Upload a golf swing video to analyze the ball trajectory";
+"analyzing" = "Analyzing...";
+"detecting_impact" = "Detecting impact...";
+"tracking_ball" = "Tracking ball...";
+"predicting_trajectory" = "Predicting trajectory...";
+"analysis_complete" = "Analysis Complete";
+"analysis_failed" = "Analysis failed";
+"retry" = "Retry";
+"cancel" = "Cancel";
+"new_analysis" = "New Analysis";
+"launch_angle" = "Launch Angle";
+"ball_speed" = "Ball Speed";
+"shot_shape" = "Shot Shape";
+"detecting_ball" = "Detecting golf ball...";
+"ball_found_title" = "Golf ball detected";
+"ball_not_found_title" = "Golf ball not found";
+"ball_not_found_message" = "Could not detect a golf ball in the video. Make sure the ball is visible and on the ground.";
+"detect_impact_button" = "Detect Impact Sound";
+"impact_found_title" = "Impact detected";
+"impact_time_label" = "Impact time in video";
+"impact_not_found_title" = "Impact not detected";
+"impact_not_found_message" = "Could not detect the impact sound. Make sure the video has audio of the club hitting the ball.";
+"select_other" = "Other Video";
 
 /* Info.plist */
 "NSCameraUsageDescription" = "Camera is used for high-speed golf swing capture.";
