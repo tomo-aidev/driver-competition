@@ -32,20 +32,15 @@ final class VideoAnalyzer: ObservableObject {
         analysisTask = Task {
             let asset = AVURLAsset(url: videoURL)
 
-            // Stage 1: Find the golf ball
+            // Stage 1: Find the golf ball using robust BallFinder
             statusMessage = String(localized: "detecting_ball", defaultValue: "Detecting golf ball...")
-            do {
-                let result = try await findGolfBall(asset: asset)
-                if let result {
-                    ballLocation = result
-                    ballDetected = true
-                    statusMessage = String(localized: "ball_found_title", defaultValue: "Golf ball detected!")
-                    print("[Analyzer] Ball at (\(String(format: "%.2f", result.position.x)), \(String(format: "%.2f", result.position.y)))")
-                } else {
-                    statusMessage = String(localized: "ball_not_found_title", defaultValue: "Golf ball not found")
-                    return
-                }
-            } catch {
+            let ballResult = await BallFinder.find(in: asset)
+            if let ballResult {
+                ballLocation = BallLocationResult(position: ballResult.position, confidence: ballResult.confidence)
+                ballDetected = true
+                statusMessage = String(localized: "ball_found_title", defaultValue: "Golf ball detected!")
+                print("[Analyzer] Ball at (\(String(format: "%.3f", ballResult.position.x)), \(String(format: "%.3f", ballResult.position.y))) method=\(ballResult.method) conf=\(String(format: "%.2f", ballResult.confidence))")
+            } else {
                 statusMessage = String(localized: "ball_not_found_title", defaultValue: "Golf ball not found")
                 return
             }
