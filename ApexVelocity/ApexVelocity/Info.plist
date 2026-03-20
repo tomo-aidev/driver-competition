@@ -24,6 +24,8 @@
 	<true/>
 	<key>NSCameraUsageDescription</key>
 	<string>Camera is used for high-speed golf swing capture.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Microphone is used to detect the impact sound of the golf club hitting the ball.</string>
 	<key>NSMotionUsageDescription</key>
 	<string>Motion data is used to guide camera angle for optimal shot capture.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
@@ -35,7 +37,7 @@
 	</dict>
 	<key>UIRequiredDeviceCapabilities</key>
 	<array>
-		<string>armv7</string>
+		<string>arm64</string>
 		<string>video-camera</string>
 	</array>
 	<key>UISupportedInterfaceOrientations</key>
