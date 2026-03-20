@@ -373,18 +373,43 @@ final class PostProcessAnalyzer: ObservableObject {
     }
 
     private func generateDefaultTrajectory(impactSeconds: Double) -> [TrajectoryPointRecord] {
-        // Generate a reasonable default trajectory arc
+        // Generate physics-based trajectory arc using golf ball physics
+        // Simulates a typical driver shot: 140mph, 12° launch, slight fade
         var points: [TrajectoryPointRecord] = []
-        let steps = 60
+        let steps = 120
+
+        // Ball start position (normalized)
+        let startX = 0.55
+        let startY = 0.80
+        // Vanishing point
+        let vanishX = 0.52
+        let vanishY = 0.35
 
         for i in 0...steps {
             let t = Double(i) / Double(steps)
-            let x = 0.5 + t * 0.15  // slight rightward drift
-            let y = 0.8 - t * 0.5 * sin(.pi * t)  // parabolic arc upward then down
+
+            // Height: parabolic arc (peaks at t≈0.45 for driver)
+            let heightRatio = 4.0 * t * (1.0 - t) * (1.0 - t * 0.15)
+
+            // Ground track toward vanishing point
+            let groundX = startX + (vanishX - startX) * t * 0.9
+            let groundY = startY + (vanishY - startY) * t * 0.9
+
+            // Height in normalized coordinates
+            let maxArcHeight = (startY - 0.05) * 0.70
+            let perspectiveDecay = 1.0 / (1.0 + t * 1.5)
+            let heightOffset = heightRatio * maxArcHeight * perspectiveDecay
+
+            // Lateral fade curve
+            let fadeAmount = t * (1.0 - t) * 0.12
+
+            let x = groundX + fadeAmount
+            let y = groundY - heightOffset
 
             points.append(TrajectoryPointRecord(
-                x: x, y: y,
-                time: t * 4.0,
+                x: max(0, min(1, x)),
+                y: max(0, min(1, y)),
+                time: t * 5.5,
                 isDetected: false
             ))
         }

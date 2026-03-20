@@ -196,32 +196,51 @@ struct TrajectoryPredictor {
     ) -> [TrajectoryPoint] {
         guard let maxDistance = trajectory3D.last?.y, maxDistance > 0 else { return [] }
 
-        // Vanishing point: where the fairway converges
-        let vanishX = Double(videoSize.width) * 0.48
+        // Vanishing point: where the fairway converges in the distance
+        let vanishX = Double(videoSize.width) * 0.52
         let vanishY = Double(videoSize.height) * 0.35
 
         let startX = Double(startPosition.x * videoSize.width)
         let startY = Double(startPosition.y * videoSize.height)
 
+        // Max height for height ratio calculation
+        let maxHeight = trajectory3D.map(\.z).max() ?? 20.0
+
         return trajectory3D.map { point in
-            // Depth ratio (0 = at ball, 1 = at max distance)
-            let depthRatio = point.y / maxDistance
+            // Progress along trajectory (0=start, 1=landing)
+            let t = point.y / maxDistance
+            let heightRatio = maxHeight > 0 ? point.z / maxHeight : 0
 
-            // Perspective: objects further away converge toward vanishing point
-            let perspectiveScale = 1.0 / (1.0 + depthRatio * 2.0)
+            // Ground track: moves from ball toward vanishing point
+            let groundX = startX + (vanishX - startX) * t * 0.9
+            let groundY = startY + (vanishY - startY) * t * 0.9
 
-            // X position: start + lateral offset (scaled by perspective) + convergence to vanish
-            let baseX = startX + (vanishX - startX) * depthRatio * 0.8
-            let lateralOffset = point.x * 20.0 * perspectiveScale // scale lateral to pixels
-            let screenX = baseX + lateralOffset
+            // Height: visible arc above ground track
+            // Peak height = 70% of distance from ball to top of frame
+            let maxArcHeight = (startY - 50) * 0.70
+            let perspectiveDecay = 1.0 / (1.0 + t * 1.5)
+            let heightPx = heightRatio * maxArcHeight * perspectiveDecay
 
-            // Y position: start + convergence to vanish - height offset (scaled by perspective)
-            let baseY = startY + (vanishY - startY) * depthRatio * 0.8
-            let heightOffset = point.z * 30.0 * perspectiveScale // scale height to pixels
-            let screenY = baseY - heightOffset
+            // Lateral: fade/draw curve for visual depth
+            // Parabolic curve peaks at t=0.5
+            let fadePeak = t * (1.0 - t) * 280.0
+            let fadeAmount: Double
+            if launchDirection > 0.1 {
+                fadeAmount = fadePeak      // fade (right)
+            } else if launchDirection < -0.1 {
+                fadeAmount = -fadePeak      // draw (left)
+            } else {
+                fadeAmount = fadePeak * 0.4 // subtle natural fade
+            }
+
+            let screenX = groundX + fadeAmount
+            let screenY = groundY - heightPx
 
             return TrajectoryPoint(
-                position: CGPoint(x: screenX, y: screenY),
+                position: CGPoint(
+                    x: max(0, min(Double(videoSize.width), screenX)),
+                    y: max(0, min(Double(videoSize.height), screenY))
+                ),
                 timestamp: CFAbsoluteTimeGetCurrent()
             )
         }
