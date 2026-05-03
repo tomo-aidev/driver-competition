@@ -73,6 +73,11 @@ final class ShotStore: ObservableObject {
             let thumbURL = shotsDirectory.appendingPathComponent(thumbName)
             try? fileManager.removeItem(at: thumbURL)
         }
+        // Delete key frame images
+        for kf in record.keyFrames {
+            let kfURL = shotsDirectory.appendingPathComponent(kf.imageFileName)
+            try? fileManager.removeItem(at: kfURL)
+        }
         saveIndex()
     }
 

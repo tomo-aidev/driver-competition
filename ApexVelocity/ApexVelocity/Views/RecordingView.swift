@@ -304,10 +304,20 @@ struct RecordingView: View {
                     Task { @MainActor in
                         do {
                             var record = try await shotStore.saveShot(from: videoURL)
+
+                            // Save known ball position from target frame (normalized 0-1)
+                            if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                               let window = windowScene.windows.first {
+                                let screenSize = window.bounds.size
+                                record.knownBallPositionX = Double(ballPosition.x / screenSize.width)
+                                record.knownBallPositionY = Double(ballPosition.y / screenSize.height)
+                                print("[Recording] Ball target: (\(String(format: "%.3f", record.knownBallPositionX!)), \(String(format: "%.3f", record.knownBallPositionY!)))")
+                            }
+
                             showSavedBanner = true
                             isSaving = false
 
-                            // Start background analysis
+                            // Start background analysis (with known ball position)
                             await analyzer.analyze(
                                 videoURL: shotStore.videoURL(for: record),
                                 record: &record

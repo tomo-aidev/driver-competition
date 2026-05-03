@@ -43,19 +43,25 @@ struct HistoryView: View {
     // MARK: - Shot List
 
     private var shotList: some View {
-        ScrollView {
-            LazyVStack(spacing: 12) {
-                ForEach(shotStore.shots) { shot in
-                    ShotCard(shot: shot, shotStore: shotStore)
-                        .onTapGesture {
-                            selectedShot = shot
-                        }
+        List {
+            ForEach(shotStore.shots) { shot in
+                ShotCard(shot: shot, shotStore: shotStore)
+                    .listRowBackground(Color.clear)
+                    .listRowSeparator(.hidden)
+                    .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16))
+                    .onTapGesture {
+                        selectedShot = shot
+                    }
+            }
+            .onDelete { indexSet in
+                for index in indexSet {
+                    let shot = shotStore.shots[index]
+                    shotStore.deleteShot(shot)
                 }
             }
-            .padding(.horizontal, 16)
-            .padding(.top, 16)
-            .padding(.bottom, 100)
         }
+        .listStyle(.plain)
+        .scrollContentBackground(.hidden)
     }
 }
 

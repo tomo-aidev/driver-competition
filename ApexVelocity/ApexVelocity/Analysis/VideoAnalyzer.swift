@@ -1,322 +1,317 @@
 import AVFoundation
 import Combine
+import Vision
 
 /// Ball detection result
 struct BallLocationResult {
     let position: CGPoint       // normalized 0-1
     let confidence: Float
+    var method: String = ""
 }
 
-/// Orchestrates video analysis while video plays
+/// Orchestrates video analysis: ball detection → impact → swing → frame tracking.
+/// Produces a timeline of ball positions. Playback sync is the View's job.
 @MainActor
 final class VideoAnalyzer: ObservableObject {
+
+    /// Known ball position from recording target frame (normalized 0-1)
+    var knownBallPosition: CGPoint?
+
+    // MARK: - Analysis Results
 
     @Published var ballLocation: BallLocationResult?
     @Published var impactTime: Double?
     @Published var ballDetected = false
     @Published var impactDetected = false
-    @Published var showImpactFlash = false
-    @Published var statusMessage: String = ""
     @Published var swingDetections: [ClubHeadDetection] = []
     @Published var swingAnalyzed = false
 
-    private var analysisTask: Task<Void, Never>?
-    private var impactSyncTask: Task<Void, Never>?
-    weak var player: AVPlayer?
+    /// Frame-by-frame ball positions: the KEY data for playback sync
+    @Published var ballTimeline: [BallFinder.FrameBallPosition] = []
+    @Published var ballTimelineReady = false
 
-    /// Run analysis: detect ball first, then find impact and sync with playback
-    func analyze(videoURL: URL, player: AVPlayer) {
+    /// Trajectory detection result (post-impact ball flight)
+    @Published var trajectoryResult: TrajectoryDetector.TrajectoryResult?
+    @Published var trajectoryDetected = false
+
+    // MARK: - Analysis State
+
+    @Published var statusMessage: String = ""
+    @Published var isAnalyzing = false
+
+    // Debug
+    @Published var debugMethod: String = ""
+
+    private var analysisTask: Task<Void, Never>?
+
+    // MARK: - Analyze
+
+    func analyze(videoURL: URL, completion: @escaping () -> Void) {
         reset()
-        self.player = player
+        isAnalyzing = true
 
         analysisTask = Task {
             let asset = AVURLAsset(url: videoURL)
 
-            // Stage 1: Find the golf ball using robust BallFinder
-            statusMessage = String(localized: "detecting_ball", defaultValue: "Detecting golf ball...")
-            let ballResult = await BallFinder.find(in: asset)
-            if let ballResult {
-                ballLocation = BallLocationResult(position: ballResult.position, confidence: ballResult.confidence)
-                ballDetected = true
-                statusMessage = String(localized: "ball_found_title", defaultValue: "Golf ball detected!")
-                print("[Analyzer] Ball at (\(String(format: "%.3f", ballResult.position.x)), \(String(format: "%.3f", ballResult.position.y))) method=\(ballResult.method) conf=\(String(format: "%.2f", ballResult.confidence))")
-            } else {
-                statusMessage = String(localized: "ball_not_found_title", defaultValue: "Golf ball not found")
-                return
+            // Stage 1: Collect audio impact candidates
+            statusMessage = String(localized: "detecting_impact", defaultValue: "Detecting impact sound...")
+            var audioCandidates: [(time: Double, energy: Float, ratio: Float)] = []
+            do {
+                audioCandidates = try await ImpactDetector.detectAllCandidates(from: asset)
+                guard !Task.isCancelled else { return }
+            } catch {
+                print("[Analyzer] Audio analysis error: \(error)")
             }
 
-            try? await Task.sleep(for: .seconds(1.5))
+            try? await Task.sleep(for: .seconds(0.2))
             guard !Task.isCancelled else { return }
 
-            // Stage 2: Detect impact sound (background)
-            statusMessage = String(localized: "detecting_impact", defaultValue: "Detecting impact sound...")
+            // Stage 2: Quick swing analysis to find downswing timing
+            statusMessage = String(localized: "analyzing_swing", defaultValue: "Analyzing swing motion...")
+            let duration = (try? await asset.load(.duration)) ?? CMTime(seconds: 30, preferredTimescale: 600)
+            let totalSeconds = CMTimeGetSeconds(duration)
+
+            // Find when the golfer swings: look for body pose wrist velocity peak
+            var swingDownTime: Double? = nil
             do {
-                let time = try await ImpactDetector.detectImpact(from: asset)
-                if let time {
-                    let seconds = CMTimeGetSeconds(time)
-                    impactTime = seconds
-                    impactDetected = true
-                    print("[Analyzer] Impact at \(String(format: "%.2f", seconds))s")
+                // Analyze body pose across frames to find wrist drop
+                let generator = AVAssetImageGenerator(asset: asset)
+                generator.appliesPreferredTrackTransform = true
+                generator.requestedTimeToleranceBefore = CMTime(value: 1, timescale: 30)
+                generator.requestedTimeToleranceAfter = CMTime(value: 1, timescale: 30)
+                generator.maximumSize = CGSize(width: 360, height: 640)  // low res for speed
 
-                    // Wait for video playback to reach impact time, then show flash
-                    statusMessage = String(localized: "waiting_impact", defaultValue: "Waiting for impact moment...")
-                    await waitForPlaybackTime(seconds: seconds, player: player)
+                var wristYHistory: [(time: Double, y: CGFloat)] = []
 
-                    showImpactFlash = true
-                    statusMessage = String(format: String(localized: "impact_detected_at", defaultValue: "Impact! %.2fs"), seconds)
+                for t in stride(from: 0.5, to: min(totalSeconds, 15.0), by: 0.2) {
+                    let cmTime = CMTime(seconds: t, preferredTimescale: 600)
+                    var actualTime = CMTime.zero
+                    guard let image = try? generator.copyCGImage(at: cmTime, actualTime: &actualTime) else { continue }
 
-                    try? await Task.sleep(for: .seconds(3))
-                    showImpactFlash = false
+                    // Quick body pose check
+                    let handler = VNImageRequestHandler(cgImage: image, options: [:])
+                    let poseRequest = VNDetectHumanBodyPoseRequest()
+                    try? handler.perform([poseRequest])
 
-                    // Stage 3: Analyze swing trajectory
-                    guard !Task.isCancelled else { return }
-                    statusMessage = String(localized: "analyzing_swing", defaultValue: "Analyzing swing...")
+                    if let body = poseRequest.results?.first {
+                        let rw = try? body.recognizedPoint(.rightWrist)
+                        let lw = try? body.recognizedPoint(.leftWrist)
+                        if let rw = rw, rw.confidence > 0.2,
+                           let lw = lw, lw.confidence > 0.2 {
+                            let avgY = (rw.location.y + lw.location.y) / 2  // Vision: bottom-left origin
+                            wristYHistory.append((time: t, y: avgY))
+                        }
+                    }
+                }
 
-                    do {
-                        let detections = try await SwingAnalyzer.analyzeSwing(
-                            from: asset,
-                            impactTime: time,
-                            ballPosition: ballLocation?.position ?? CGPoint(x: 0.5, y: 0.8)
-                        )
-                        swingDetections = detections
-                        swingAnalyzed = true
-                        let backCount = detections.filter { $0.phase == .backswing }.count
-                        let downCount = detections.filter { $0.phase == .downswing }.count
-                        statusMessage = String(localized: "swing_analyzed", defaultValue: "Swing analyzed")
-                        print("[Analyzer] Swing: \(backCount) backswing, \(downCount) downswing frames")
-                    } catch {
-                        print("[Analyzer] Swing analysis error: \(error)")
+                // Find the moment wrists drop fastest (backswing top → impact)
+                // In Vision coords: Y decreases = wrist goes down = downswing
+                var maxDrop: CGFloat = 0
+                for i in 1..<wristYHistory.count {
+                    let dy = wristYHistory[i-1].y - wristYHistory[i].y  // positive = dropping
+                    if dy > maxDrop {
+                        maxDrop = dy
+                        swingDownTime = wristYHistory[i].time
+                    }
+                }
+
+                if let sdt = swingDownTime {
+                    print("[Analyzer] Swing down detected at \(String(format: "%.2f", sdt))s (wrist drop=\(String(format: "%.3f", maxDrop)))")
+                }
+            }
+
+            try? await Task.sleep(for: .seconds(0.2))
+            guard !Task.isCancelled else { return }
+
+            // Stage 3: Combine audio + visual to find true impact
+            if !audioCandidates.isEmpty {
+                let selectedTime: Double
+
+                if let swingDown = swingDownTime {
+                    // Pick audio candidate closest to swing-down time (within ±0.5s)
+                    let nearby = audioCandidates.filter { abs($0.time - swingDown) < 0.5 }
+                    if let best = nearby.max(by: { $0.energy < $1.energy }) {
+                        selectedTime = best.time
+                        print("[Analyzer] Impact: audio(\(String(format: "%.3f", best.time))s) matched swing(\(String(format: "%.2f", swingDown))s)")
+                    } else {
+                        // No audio near swing → take highest energy candidate near swing
+                        let closest = audioCandidates.min(by: { abs($0.time - swingDown) < abs($1.time - swingDown) })!
+                        selectedTime = closest.time
+                        print("[Analyzer] Impact: closest audio(\(String(format: "%.3f", closest.time))s) to swing(\(String(format: "%.2f", swingDown))s)")
                     }
                 } else {
-                    statusMessage = String(localized: "impact_not_found_title", defaultValue: "Impact not detected")
+                    // No swing detected → take the highest energy audio candidate
+                    let best = audioCandidates.max(by: { $0.energy < $1.energy })!
+                    selectedTime = best.time
+                    print("[Analyzer] Impact: highest energy audio at \(String(format: "%.3f", best.time))s (no swing data)")
                 }
-            } catch {
+
+                impactTime = selectedTime
+                impactDetected = true
+                statusMessage = String(format: String(localized: "impact_detected_at", defaultValue: "Impact! %.2fs"), selectedTime)
+            } else {
                 statusMessage = String(localized: "impact_not_found_title", defaultValue: "Impact not detected")
             }
+
+            try? await Task.sleep(for: .seconds(0.3))
+            guard !Task.isCancelled else { return }
+
+            // Stage 4: Ball detection
+            statusMessage = String(localized: "detecting_ball", defaultValue: "Detecting golf ball...")
+
+            if let known = knownBallPosition {
+                // Use known position from recording target frame
+                ballLocation = BallLocationResult(
+                    position: known,
+                    confidence: 1.0,
+                    method: "target_frame"
+                )
+                ballDetected = true
+                debugMethod = "target_frame"
+                statusMessage = String(localized: "ball_found_title", defaultValue: "Golf ball detected!")
+                print("[Analyzer] Using known ball position from target frame: (\(String(format: "%.3f", known.x)), \(String(format: "%.3f", known.y)))")
+            } else {
+                // AI detection fallback
+                let ballResult = await BallFinder.find(in: asset, impactTime: impactTime)
+                guard !Task.isCancelled else { return }
+                if let ballResult {
+                    ballLocation = BallLocationResult(
+                        position: ballResult.position,
+                        confidence: ballResult.confidence,
+                        method: ballResult.method
+                    )
+                    ballDetected = true
+                    debugMethod = ballResult.method
+                    statusMessage = String(localized: "ball_found_title", defaultValue: "Golf ball detected!")
+                } else {
+                    statusMessage = String(localized: "ball_not_found_title", defaultValue: "Golf ball not found")
+                }
+            }
+
+            try? await Task.sleep(for: .seconds(0.3))
+            guard !Task.isCancelled else { return }
+
+            // Stage 5: Full swing trajectory
+            statusMessage = String(localized: "analyzing_swing", defaultValue: "Analyzing swing trajectory...")
+            if let impactTime {
+                let cmTime = CMTime(seconds: impactTime, preferredTimescale: 600)
+                do {
+                    let detections = try await SwingAnalyzer.analyzeSwing(
+                        from: asset, impactTime: cmTime,
+                        ballPosition: ballLocation?.position ?? CGPoint(x: 0.5, y: 0.8)
+                    )
+                    guard !Task.isCancelled else { return }
+                    swingDetections = detections
+                    swingAnalyzed = true
+                } catch {
+                    print("[Analyzer] Swing error: \(error)")
+                }
+            }
+
+            try? await Task.sleep(for: .seconds(0.3))
+            guard !Task.isCancelled else { return }
+
+            // Stage 4: Build ball timeline (frame-by-frame)
+            if ballDetected, let loc = ballLocation {
+                statusMessage = String(localized: "tracking_ball", defaultValue: "Building ball timeline...")
+                let timeline = await BallFinder.trackBallAcrossFrames(
+                    in: asset,
+                    initialBallPosition: loc.position,
+                    impactTime: impactTime,
+                    frameInterval: 0.1
+                )
+                guard !Task.isCancelled else { return }
+                ballTimeline = timeline
+                ballTimelineReady = true
+                statusMessage = String(format: String(localized: "tracking_complete", defaultValue: "Ball tracked: %d frames"), timeline.count)
+                print("[Analyzer] Timeline: \(timeline.count) entries")
+            }
+
+            try? await Task.sleep(for: .seconds(0.3))
+            guard !Task.isCancelled else { return }
+
+            // Stage 5: Trajectory detection (post-impact ball flight)
+            if let impactTime, let loc = ballLocation {
+                statusMessage = String(localized: "detecting_trajectory", defaultValue: "Detecting ball trajectory...")
+                let trajectory = await TrajectoryDetector.detectTrajectory(
+                    in: asset,
+                    impactTime: impactTime,
+                    ballPosition: loc.position
+                )
+                guard !Task.isCancelled else { return }
+                if let trajectory {
+                    trajectoryResult = trajectory
+                    trajectoryDetected = true
+                    statusMessage = String(format: "Trajectory: %d pts (%@)", trajectory.points.count, trajectory.method)
+                    print("[Analyzer] Trajectory: \(trajectory.points.count) pts, method=\(trajectory.method), angle=\(String(format: "%.1f", trajectory.launchAngleDeg))°")
+                }
+            }
+
+            try? await Task.sleep(for: .seconds(0.3))
+            guard !Task.isCancelled else { return }
+
+            statusMessage = String(localized: "analysis_complete", defaultValue: "Analysis complete")
+            isAnalyzing = false
+            completion()
         }
+    }
+
+    /// Look up ball position for a given playback time.
+    /// Returns nil if ball shouldn't be shown (low confidence or no data).
+    func ballPosition(at time: Double) -> (position: CGPoint, opacity: Double)? {
+        guard !ballTimeline.isEmpty else {
+            // Fallback: use static ball position if timeline not ready
+            guard let loc = ballLocation, let impact = impactTime else { return nil }
+            if time < impact {
+                return (loc.position, 1.0)
+            } else if time < impact + 0.5 {
+                return (loc.position, max(0, 1.0 - (time - impact) / 0.5))
+            }
+            return nil
+        }
+
+        // Binary search for closest time entry
+        var lo = 0, hi = ballTimeline.count - 1
+        while lo < hi {
+            let mid = (lo + hi) / 2
+            if ballTimeline[mid].time < time {
+                lo = mid + 1
+            } else {
+                hi = mid
+            }
+        }
+
+        // Check neighbors for closest
+        let idx = lo
+        let entry = ballTimeline[idx]
+        let timeDiff = abs(entry.time - time)
+
+        // Too far from any entry → no data
+        guard timeDiff < 0.2 else { return nil }
+
+        // Low confidence → hide
+        guard entry.confidence >= 0.3 else {
+            return (entry.position, Double(entry.confidence))
+        }
+
+        return (entry.position, Double(min(1.0, entry.confidence / 0.9)))
     }
 
     func reset() {
         analysisTask?.cancel()
-        impactSyncTask?.cancel()
         analysisTask = nil
-        impactSyncTask = nil
-        player = nil
         ballLocation = nil
         impactTime = nil
         ballDetected = false
         impactDetected = false
-        showImpactFlash = false
         statusMessage = ""
         swingDetections = []
         swingAnalyzed = false
-    }
-
-    // MARK: - Wait for Playback to Reach Time
-
-    private func waitForPlaybackTime(seconds: Double, player: AVPlayer) async {
-        // Poll playback time until it reaches the impact moment
-        while !Task.isCancelled {
-            let currentTime = CMTimeGetSeconds(player.currentTime())
-            if currentTime >= seconds - 0.1 {
-                return
-            }
-            try? await Task.sleep(for: .milliseconds(50))
-        }
-    }
-
-    // MARK: - Ball Detection
-
-    private func findGolfBall(asset: AVAsset) async throws -> BallLocationResult? {
-        let generator = AVAssetImageGenerator(asset: asset)
-        generator.appliesPreferredTrackTransform = true
-        generator.requestedTimeToleranceBefore = .zero
-        generator.requestedTimeToleranceAfter = .zero
-
-        // Sample early frames (ball is stationary before swing)
-        let sampleTimes: [Double] = [0.3, 0.5, 1.0, 1.5, 2.0]
-
-        for time in sampleTimes {
-            try Task.checkCancellation()
-
-            let cmTime = CMTime(seconds: time, preferredTimescale: 600)
-            var actualTime = CMTime.zero
-            guard let image = try? generator.copyCGImage(at: cmTime, actualTime: &actualTime) else {
-                continue
-            }
-
-            if let pos = detectBallInBottomCenter(in: image) {
-                return BallLocationResult(position: pos, confidence: 0.8)
-            }
-        }
-        return nil
-    }
-
-    /// Detect golf ball specifically in the bottom-center area of the frame.
-    /// The ball is small, white/bright, on green/brown grass, near the driver head.
-    private func detectBallInBottomCenter(in image: CGImage) -> CGPoint? {
-        let width = image.width
-        let height = image.height
-
-        guard let data = image.dataProvider?.data,
-              let ptr = CFDataGetBytePtr(data) else { return nil }
-
-        let bytesPerPixel = image.bitsPerPixel / 8
-        let bytesPerRow = image.bytesPerRow
-        let dataLength = CFDataGetLength(data)
-
-        // STRICT search area: bottom 25% of frame, center 40% of width
-        // This is where the golf ball sits on the tee
-        let searchStartY = height * 70 / 100
-        let searchEndY = height * 92 / 100  // avoid watermark at very bottom
-        let searchStartX = width * 30 / 100
-        let searchEndX = width * 70 / 100
-
-        // Collect ALL white-ish candidates in the search area
-        struct Candidate {
-            var x: Int
-            var y: Int
-            var brightness: Int
-            var clusterSize: Int
-            var surroundDarkness: Int // lower = darker surrounding = better contrast
-        }
-
-        var candidates: [Candidate] = []
-        let step = 3
-
-        for y in stride(from: searchStartY, to: searchEndY, by: step) {
-            for x in stride(from: searchStartX, to: searchEndX, by: step) {
-                let offset = y * bytesPerRow + x * bytesPerPixel
-                guard offset + 2 < dataLength else { continue }
-
-                let r = Int(ptr[offset])
-                let g = Int(ptr[offset + 1])
-                let b = Int(ptr[offset + 2])
-                let brightness = (r + g + b) / 3
-                let maxC = max(r, max(g, b))
-                let minC = min(r, min(g, b))
-                let saturation = maxC - minC
-
-                // Golf ball: bright (>160), can be white, yellow, pink, orange
-                // White: high brightness, low saturation
-                // Color balls: high brightness, moderate saturation but specific hues
-                let isWhiteBall = brightness > 170 && saturation < 50
-                let isYellowBall = r > 180 && g > 170 && b < 140 && brightness > 160
-                let isPinkBall = r > 180 && g < 140 && b > 130 && brightness > 150
-                let isOrangeBall = r > 190 && g > 130 && g < 180 && b < 100 && brightness > 150
-
-                guard isWhiteBall || isYellowBall || isPinkBall || isOrangeBall else { continue }
-
-                // Measure cluster size and circularity
-                let (cluster, circularity) = measureClusterAndCircularity(
-                    ptr: ptr, cx: x, cy: y,
-                    width: width, height: height,
-                    bytesPerRow: bytesPerRow,
-                    bytesPerPixel: bytesPerPixel,
-                    dataLength: dataLength,
-                    brightness: brightness, saturation: saturation
-                )
-
-                // Golf ball: small spherical cluster (2-25px), reasonably circular (>0.5)
-                guard cluster >= 2 && cluster <= 25 && circularity > 0.4 else { continue }
-
-                // Measure surrounding darkness (ball should contrast with grass)
-                let surround = measureSurround(ptr: ptr, cx: x, cy: y,
-                                                width: width, height: height,
-                                                bytesPerRow: bytesPerRow,
-                                                bytesPerPixel: bytesPerPixel,
-                                                dataLength: dataLength,
-                                                radius: 25)
-
-                // Surrounding should be darker than the ball (grass)
-                guard surround < 150 else { continue }
-
-                candidates.append(Candidate(
-                    x: x, y: y,
-                    brightness: brightness,
-                    clusterSize: cluster,
-                    surroundDarkness: surround
-                ))
-            }
-        }
-
-        guard !candidates.isEmpty else { return nil }
-
-        // Score candidates: prefer high brightness, good cluster size, dark surroundings
-        let best = candidates.max(by: { a, b in
-            let scoreA = a.brightness - a.surroundDarkness + a.clusterSize * 5
-            let scoreB = b.brightness - b.surroundDarkness + b.clusterSize * 5
-            return scoreA < scoreB
-        })
-
-        guard let best else { return nil }
-
-        return CGPoint(
-            x: CGFloat(best.x) / CGFloat(width),
-            y: CGFloat(best.y) / CGFloat(height)
-        )
-    }
-
-    /// Measures cluster size AND circularity (1.0 = perfect circle, 0.0 = line)
-    private func measureClusterAndCircularity(
-        ptr: UnsafePointer<UInt8>, cx: Int, cy: Int,
-        width: Int, height: Int,
-        bytesPerRow: Int, bytesPerPixel: Int,
-        dataLength: Int,
-        brightness: Int, saturation: Int
-    ) -> (size: Int, circularity: CGFloat) {
-        var count = 0
-        var minX = cx, maxX = cx, minY = cy, maxY = cy
-        let radius = 15
-
-        for dy in stride(from: -radius, through: radius, by: 2) {
-            for dx in stride(from: -radius, through: radius, by: 2) {
-                let px = cx + dx, py = cy + dy
-                guard px >= 0, px < width, py >= 0, py < height else { continue }
-                let offset = py * bytesPerRow + px * bytesPerPixel
-                guard offset + 2 < dataLength else { continue }
-                let r = Int(ptr[offset]), g = Int(ptr[offset+1]), b = Int(ptr[offset+2])
-                let br = (r + g + b) / 3
-                // Match similar brightness/color as center pixel
-                if br > 160 {
-                    count += 1
-                    minX = min(minX, px)
-                    maxX = max(maxX, px)
-                    minY = min(minY, py)
-                    maxY = max(maxY, py)
-                }
-            }
-        }
-
-        guard count >= 2 else { return (count, 0) }
-
-        // Circularity: ratio of shorter to longer axis of bounding box
-        let bboxW = CGFloat(maxX - minX + 1)
-        let bboxH = CGFloat(maxY - minY + 1)
-        let shorter = min(bboxW, bboxH)
-        let longer = max(bboxW, bboxH)
-        let circularity = longer > 0 ? shorter / longer : 0
-
-        return (count, circularity)
-    }
-
-    private func measureSurround(ptr: UnsafePointer<UInt8>, cx: Int, cy: Int,
-                                   width: Int, height: Int,
-                                   bytesPerRow: Int, bytesPerPixel: Int,
-                                   dataLength: Int, radius: Int) -> Int {
-        var total = 0, count = 0
-        for dy in stride(from: -radius, through: radius, by: 3) {
-            for dx in stride(from: -radius, through: radius, by: 3) {
-                let dist = abs(dx) + abs(dy)
-                guard dist >= radius / 2 else { continue } // skip inner area (ball itself)
-                let px = cx + dx, py = cy + dy
-                guard px >= 0, px < width, py >= 0, py < height else { continue }
-                let offset = py * bytesPerRow + px * bytesPerPixel
-                guard offset + 2 < dataLength else { continue }
-                total += (Int(ptr[offset]) + Int(ptr[offset+1]) + Int(ptr[offset+2])) / 3
-                count += 1
-            }
-        }
-        return count > 0 ? total / count : 255
+        ballTimeline = []
+        ballTimelineReady = false
+        trajectoryResult = nil
+        trajectoryDetected = false
+        isAnalyzing = false
+        debugMethod = ""
     }
 }

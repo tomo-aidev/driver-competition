@@ -27,8 +27,16 @@ struct ShotRecord: Codable, Identifiable {
     // Body pose swing metrics (from VNDetectHumanBodyPose3D)
     var swingMetrics: SwingMetrics?
 
+    // Known ball position from recording target frame (normalized 0-1)
+    // Set when user aligns ball in the target frame before recording
+    var knownBallPositionX: Double?
+    var knownBallPositionY: Double?
+
     // Thumbnail
     var thumbnailFileName: String?
+
+    // Key frames for analysis review
+    var keyFrames: [KeyFrameRecord]
 
     init(videoFileName: String) {
         self.id = UUID()
@@ -38,6 +46,7 @@ struct ShotRecord: Codable, Identifiable {
         self.analysisProgress = 0
         self.ballTrajectory = []
         self.swingTrajectory = []
+        self.keyFrames = []
     }
 }
 
@@ -62,12 +71,23 @@ struct SwingPointRecord: Codable {
     let phase: String  // "backswing", "downswing", "postImpact"
 }
 
+/// A key frame captured during analysis with ball marker overlay
+struct KeyFrameRecord: Codable {
+    let imageFileName: String   // relative to shots directory
+    let time: Double            // seconds from video start
+    let label: String           // e.g. "Ball Detected", "Top of Backswing", "Impact", "Impact +0.1s"
+    let ballX: Double?          // normalized ball marker X (nil = no marker)
+    let ballY: Double?          // normalized ball marker Y
+}
+
 struct ShotMetrics: Codable {
-    var estimatedLaunchAngle: Double?   // degrees
-    var estimatedLaunchDirection: Double? // degrees (0=straight, +right, -left)
-    var estimatedBallSpeed: Double?      // m/s
-    var estimatedCarryDistance: Double?   // meters
-    var detectedFrameCount: Int          // how many frames ball was detected
-    var predictedFrameCount: Int         // how many frames were physics-predicted
-    var analysisConfidence: Double       // 0-1 overall confidence
+    var estimatedLaunchAngle: Double?       // degrees
+    var estimatedLaunchDirection: Double?   // degrees (0=straight, +right, -left)
+    var estimatedBallSpeed: Double?         // m/s
+    var estimatedHeadSpeed: Double?         // m/s (club head speed)
+    var estimatedCarryDistance: Double?     // yards
+    var estimatedCarryDistanceMeters: Double? // meters
+    var detectedFrameCount: Int            // how many frames ball was detected
+    var predictedFrameCount: Int           // how many frames were physics-predicted
+    var analysisConfidence: Double          // 0-1 overall confidence
 }
