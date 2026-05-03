@@ -30,10 +30,10 @@ struct MainTabView: View {
 
     var body: some View {
         TabView(selection: $selectedTab) {
-            ContentView(shotStore: shotStore, switchToHistory: { selectedTab = 1 })
+            AnalysisView(shotStore: shotStore)
                 .tabItem {
-                    Image(systemName: "video.fill")
-                    Text(String(localized: "tab_record", defaultValue: "Record"))
+                    Image(systemName: "chart.xyaxis.line")
+                    Text(String(localized: "tab_analysis", defaultValue: "Analysis"))
                 }
                 .tag(0)
 
@@ -44,12 +44,26 @@ struct MainTabView: View {
                 }
                 .tag(1)
 
-            AnalysisView(shotStore: shotStore)
+            TrailExportView()
                 .tabItem {
-                    Image(systemName: "chart.xyaxis.line")
-                    Text(String(localized: "tab_analysis", defaultValue: "Analysis"))
+                    Image(systemName: "wand.and.stars")
+                    Text("Trail")
                 }
                 .tag(2)
+
+            SwingPrototypeView()
+                .tabItem {
+                    Image(systemName: "figure.golf")
+                    Text("Proto")
+                }
+                .tag(3)
+
+            TrajectoryTestView()
+                .tabItem {
+                    Image(systemName: "target")
+                    Text("Test")
+                }
+                .tag(4)
         }
         .preferredColorScheme(.dark)
     }

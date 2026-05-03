@@ -55,21 +55,19 @@ struct SplashView: View {
                     // Logo mark with corner markers
                     ZStack {
                         // Glow
-                        RoundedRectangle(cornerRadius: 12)
+                        RoundedRectangle(cornerRadius: 24)
                             .fill(AppTheme.primary.opacity(0.2))
-                            .frame(width: 110, height: 110)
+                            .frame(width: 140, height: 140)
                             .blur(radius: 30)
 
-                        // Main icon
-                        RoundedRectangle(cornerRadius: 12)
-                            .fill(AppTheme.primary)
-                            .frame(width: 96, height: 96)
-                            .shadow(color: AppTheme.primary.opacity(0.15), radius: 40)
-                            .overlay {
-                                Image(systemName: "gauge.open.with.lines.needle.33percent.and.arrowtriangle")
-                                    .font(.system(size: 48, weight: .medium))
-                                    .foregroundStyle(AppTheme.onPrimary)
-                            }
+                        // Main logo image
+                        Image("Logo")
+                            .resizable()
+                            .interpolation(.high)
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 120, height: 120)
+                            .clipShape(RoundedRectangle(cornerRadius: 24))
+                            .shadow(color: AppTheme.primary.opacity(0.25), radius: 30)
 
                         // Corner precision markers
                         CornerMarkers()
@@ -77,17 +75,11 @@ struct SplashView: View {
 
                     // Brand text
                     VStack(spacing: 8) {
-                        HStack(spacing: 8) {
-                            Text("APEX")
-                                .font(.custom("SpaceGrotesk-Bold", size: 48, relativeTo: .largeTitle))
-                                .foregroundStyle(AppTheme.onSurface)
-                            Text("VELOCITY")
-                                .font(.custom("SpaceGrotesk-Bold", size: 48, relativeTo: .largeTitle))
-                                .foregroundStyle(AppTheme.primaryFixed)
-                        }
-                        .tracking(-2)
+                        Text("ともともテスト")
+                            .font(.custom("SpaceGrotesk-Bold", size: 42, relativeTo: .largeTitle))
+                            .foregroundStyle(AppTheme.primaryFixed)
 
-                        Text("アペックス・ベロシティ")
+                        Text("APEX VELOCITY")
                             .font(.custom("Inter-Regular", size: 13, relativeTo: .caption))
                             .tracking(6)
                             .foregroundStyle(AppTheme.onSurfaceVariant)

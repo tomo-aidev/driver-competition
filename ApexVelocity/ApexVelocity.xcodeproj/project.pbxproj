@@ -33,6 +33,7 @@
 		A10000010000000000000048 /* KalmanFilter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000048; };
 		A10000010000000000000049 /* TrajectoryRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000049; };
 		A10000010000000000000050 /* SwingAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000050; };
+		C034FAFC8D6F320FF24C0078 /* KeyFrameExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0325427F83CB79C4E81EFB1 /* KeyFrameExtractor.swift */; };
 		C10000010000000000000001 /* DetectionTypesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20000010000000000000001; };
 		C10000010000000000000002 /* BallDetectorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20000010000000000000002; };
 		C10000010000000000000003 /* BallTrackerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20000010000000000000003; };
@@ -43,6 +44,18 @@
 		F968C10F346C4AC690FC5085 /* ShotDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FE18063264648D587E00EDB /* ShotDetailView.swift */; };
 		F790B96FD8844DD8830EDDA1 /* BodyPoseAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C52DFFAA13F4F7CA1FCE3E1 /* BodyPoseAnalyzer.swift */; };
 		9A116E9F05B64D408A293A6C /* BallFinder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A8ACA573CA4488AA63183CF /* BallFinder.swift */; };
+		5E57F11A9B56483A94E677D7 /* TrajectoryDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21C2941F2BB34D9D88CCF82C /* TrajectoryDetector.swift */; };
+		DDD09CEE89C54934B592319D /* TrajectoryAnimationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BE9A53A9FB444E18934A230 /* TrajectoryAnimationView.swift */; };
+		AB1D96972EE644089648AEC4 /* TrajectoryTestView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DE2D1DEA4954D7E8963D560 /* TrajectoryTestView.swift */; };
+		B1B1B1B1000000000000C001 /* ClubTrailRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1A1A1A1000000000000C001 /* ClubTrailRenderer.swift */; };
+		B1B1B1B1000000000000C002 /* VideoExporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1A1A1A1000000000000C002 /* VideoExporter.swift */; };
+		B1B1B1B1000000000000C003 /* TrailExportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1A1A1A1000000000000C003 /* TrailExportView.swift */; };
+		Q1Q1Q1Q1000000000000Q001 /* PoseFrameExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = P1P1P1P1000000000000P001 /* PoseFrameExtractor.swift */; };
+		Q1Q1Q1Q1000000000000Q002 /* SkeletonRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = P1P1P1P1000000000000P002 /* SkeletonRenderer.swift */; };
+		Q1Q1Q1Q1000000000000Q003 /* SwingPrototypeViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = P1P1P1P1000000000000P003 /* SwingPrototypeViewModel.swift */; };
+		Q1Q1Q1Q1000000000000Q004 /* SwingPrototypeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = P1P1P1P1000000000000P004 /* SwingPrototypeView.swift */; };
+		Q1Q1Q1Q1000000000000Q005 /* VideoTrimmer.swift in Sources */ = {isa = PBXBuildFile; fileRef = P1P1P1P1000000000000P005 /* VideoTrimmer.swift */; };
+		Q1Q1Q1Q1000000000000Q006 /* VideoTrimView.swift in Sources */ = {isa = PBXBuildFile; fileRef = P1P1P1P1000000000000P006 /* VideoTrimView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -77,6 +90,7 @@
 		A20000010000000000000048 /* KalmanFilter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KalmanFilter.swift; sourceTree = "<group>"; };
 		A20000010000000000000049 /* TrajectoryRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrajectoryRenderer.swift; sourceTree = "<group>"; };
 		A20000010000000000000050 /* SwingAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwingAnalyzer.swift; sourceTree = "<group>"; };
+		F0325427F83CB79C4E81EFB1 /* KeyFrameExtractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyFrameExtractor.swift; sourceTree = "<group>"; };
 		A30000010000000000000001 /* ApexVelocity.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ApexVelocity.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		C20000010000000000000001 /* DetectionTypesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetectionTypesTests.swift; sourceTree = "<group>"; };
 		C20000010000000000000002 /* BallDetectorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BallDetectorTests.swift; sourceTree = "<group>"; };
@@ -89,6 +103,18 @@
 		1FE18063264648D587E00EDB /* ShotDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShotDetailView.swift; sourceTree = "<group>"; };
 		8C52DFFAA13F4F7CA1FCE3E1 /* BodyPoseAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BodyPoseAnalyzer.swift; sourceTree = "<group>"; };
 		5A8ACA573CA4488AA63183CF /* BallFinder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BallFinder.swift; sourceTree = "<group>"; };
+		21C2941F2BB34D9D88CCF82C /* TrajectoryDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrajectoryDetector.swift; sourceTree = "<group>"; };
+		1BE9A53A9FB444E18934A230 /* TrajectoryAnimationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrajectoryAnimationView.swift; sourceTree = "<group>"; };
+		3DE2D1DEA4954D7E8963D560 /* TrajectoryTestView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrajectoryTestView.swift; sourceTree = "<group>"; };
+		A1A1A1A1000000000000C001 /* ClubTrailRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClubTrailRenderer.swift; sourceTree = "<group>"; };
+		A1A1A1A1000000000000C002 /* VideoExporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoExporter.swift; sourceTree = "<group>"; };
+		A1A1A1A1000000000000C003 /* TrailExportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrailExportView.swift; sourceTree = "<group>"; };
+		P1P1P1P1000000000000P001 /* PoseFrameExtractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PoseFrameExtractor.swift; sourceTree = "<group>"; };
+		P1P1P1P1000000000000P002 /* SkeletonRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkeletonRenderer.swift; sourceTree = "<group>"; };
+		P1P1P1P1000000000000P003 /* SwingPrototypeViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwingPrototypeViewModel.swift; sourceTree = "<group>"; };
+		P1P1P1P1000000000000P004 /* SwingPrototypeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwingPrototypeView.swift; sourceTree = "<group>"; };
+		P1P1P1P1000000000000P005 /* VideoTrimmer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoTrimmer.swift; sourceTree = "<group>"; };
+		P1P1P1P1000000000000P006 /* VideoTrimView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoTrimView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXContainerItemProxy section */
@@ -139,6 +165,7 @@
 				A50000010000000000000009 /* Overlay */,
 				A50000010000000000000010B /* Rendering */,
 				A50000010000000000000005 /* Views */,
+				P1P1P1P1000000000000G001 /* Prototype */,
 				A50000010000000000000006 /* Theme */,
 				A50000010000000000000007 /* Resources */,
 				A20000010000000000000009 /* Info.plist */,
@@ -164,12 +191,28 @@
 			path = Camera;
 			sourceTree = "<group>";
 		};
+		P1P1P1P1000000000000G001 /* Prototype */ = {
+			isa = PBXGroup;
+			children = (
+				P1P1P1P1000000000000P001 /* PoseFrameExtractor.swift */,
+				P1P1P1P1000000000000P002 /* SkeletonRenderer.swift */,
+				P1P1P1P1000000000000P003 /* SwingPrototypeViewModel.swift */,
+				P1P1P1P1000000000000P004 /* SwingPrototypeView.swift */,
+				P1P1P1P1000000000000P005 /* VideoTrimmer.swift */,
+				P1P1P1P1000000000000P006 /* VideoTrimView.swift */,
+			);
+			path = Prototype;
+			sourceTree = "<group>";
+		};
 		A50000010000000000000005 /* Views */ = {
 			isa = PBXGroup;
 			children = (
 				A20000010000000000000002 /* ContentView.swift */,
 				A20000010000000000000003 /* SplashView.swift */,
 				A20000010000000000000004 /* RecordingView.swift */,
+				1BE9A53A9FB444E18934A230 /* TrajectoryAnimationView.swift */,
+				3DE2D1DEA4954D7E8963D560 /* TrajectoryTestView.swift */,
+				A1A1A1A1000000000000C003 /* TrailExportView.swift */,
 				A20000010000000000000040 /* MainTabView.swift */,
 				A20000010000000000000041 /* AnalysisView.swift */,
 				A20000010000000000000042 /* VideoPicker.swift */,
@@ -209,7 +252,11 @@
 				4885CD09AB9441669B3849E9 /* PostProcessAnalyzer.swift */,
 				8C52DFFAA13F4F7CA1FCE3E1 /* BodyPoseAnalyzer.swift */,
 				5A8ACA573CA4488AA63183CF /* BallFinder.swift */,
+				21C2941F2BB34D9D88CCF82C /* TrajectoryDetector.swift */,
 				A20000010000000000000050 /* SwingAnalyzer.swift */,
+				A1A1A1A1000000000000C001 /* ClubTrailRenderer.swift */,
+				A1A1A1A1000000000000C002 /* VideoExporter.swift */,
+				F0325427F83CB79C4E81EFB1 /* KeyFrameExtractor.swift */,
 			);
 			path = Analysis;
 			sourceTree = "<group>";
@@ -387,6 +434,7 @@
 				A10000010000000000000048 /* KalmanFilter.swift in Sources */,
 				A10000010000000000000049 /* TrajectoryRenderer.swift in Sources */,
 				A10000010000000000000050 /* SwingAnalyzer.swift in Sources */,
+				C034FAFC8D6F320FF24C0078 /* KeyFrameExtractor.swift in Sources */,
 							0E0F9592E85D4AF983AE128D /* ShotRecord.swift in Sources */,
 				E1D3B9D855D548259C83E6C0 /* ShotStore.swift in Sources */,
 				5CA542AD5426411D8D65A102 /* PostProcessAnalyzer.swift in Sources */,
@@ -394,6 +442,18 @@
 				F968C10F346C4AC690FC5085 /* ShotDetailView.swift in Sources */,
 				F790B96FD8844DD8830EDDA1 /* BodyPoseAnalyzer.swift in Sources */,
 				9A116E9F05B64D408A293A6C /* BallFinder.swift in Sources */,
+				5E57F11A9B56483A94E677D7 /* TrajectoryDetector.swift in Sources */,
+				B1B1B1B1000000000000C001 /* ClubTrailRenderer.swift in Sources */,
+				B1B1B1B1000000000000C002 /* VideoExporter.swift in Sources */,
+				B1B1B1B1000000000000C003 /* TrailExportView.swift in Sources */,
+				Q1Q1Q1Q1000000000000Q001 /* PoseFrameExtractor.swift in Sources */,
+				Q1Q1Q1Q1000000000000Q002 /* SkeletonRenderer.swift in Sources */,
+				Q1Q1Q1Q1000000000000Q003 /* SwingPrototypeViewModel.swift in Sources */,
+				Q1Q1Q1Q1000000000000Q004 /* SwingPrototypeView.swift in Sources */,
+				Q1Q1Q1Q1000000000000Q005 /* VideoTrimmer.swift in Sources */,
+				Q1Q1Q1Q1000000000000Q006 /* VideoTrimView.swift in Sources */,
+				DDD09CEE89C54934B592319D /* TrajectoryAnimationView.swift in Sources */,
+				AB1D96972EE644089648AEC4 /* TrajectoryTestView.swift in Sources */,
 );
 			runOnlyForDeploymentPostprocessing = 0;
 		};

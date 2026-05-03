@@ -2,17 +2,35 @@ import AVFoundation
 import Accelerate
 
 /// Detects the moment of club-ball impact from the audio track of a golf video.
-/// Uses short-time energy analysis to find the characteristic transient spike.
+///
+/// Key insight: Impact is the FIRST sudden energy spike, not the largest.
+/// A golf video may contain multiple loud sounds (talking, second swing, etc.)
+/// but the impact we want is the FIRST sharp transient.
 struct ImpactDetector {
+
+    /// Detect ALL impact candidates from audio.
+    /// Returns sorted by time, caller should pick the best one using visual cues.
+    static func detectAllCandidates(from asset: AVAsset) async throws -> [(time: Double, energy: Float, ratio: Float)] {
+        guard let result = try await analyzeAudio(from: asset) else { return [] }
+        return result
+    }
 
     /// Detect the impact moment in the video's audio track.
     /// Returns the CMTime of the impact, or nil if no clear impact is found.
     static func detectImpact(from asset: AVAsset) async throws -> CMTime? {
+        guard let candidates = try await analyzeAudio(from: asset),
+              let best = candidates.first else { return nil }
+        return CMTime(seconds: best.time, preferredTimescale: 600)
+    }
+
+    /// Core audio analysis - returns all spike candidates sorted by time.
+    private static func analyzeAudio(from asset: AVAsset) async throws -> [(time: Double, energy: Float, ratio: Float)]? {
         guard let audioTrack = try await asset.loadTracks(withMediaType: .audio).first else {
-            return nil // No audio track — caller should fall back to frame analysis
+            return nil
         }
 
         let duration = try await asset.load(.duration)
+        let totalSeconds = CMTimeGetSeconds(duration)
         let reader = try AVAssetReader(asset: asset)
 
         let outputSettings: [String: Any] = [
@@ -30,13 +48,14 @@ struct ImpactDetector {
         // Collect all audio samples
         var allSamples: [Float] = []
         var sampleRate: Double = 44100
+        var channelCount: Int = 1
 
-        // Get the actual sample rate from the track
         let formatDescriptions = try await audioTrack.load(.formatDescriptions)
         if let formatDesc = formatDescriptions.first {
             let asbd = CMAudioFormatDescriptionGetStreamBasicDescription(formatDesc)
-            if let rate = asbd?.pointee.mSampleRate, rate > 0 {
-                sampleRate = rate
+            if let desc = asbd?.pointee {
+                if desc.mSampleRate > 0 { sampleRate = desc.mSampleRate }
+                if desc.mChannelsPerFrame > 0 { channelCount = Int(desc.mChannelsPerFrame) }
             }
         }
 
@@ -56,15 +75,31 @@ struct ImpactDetector {
 
         guard !allSamples.isEmpty else { return nil }
 
+        // Convert stereo to mono by averaging channels
+        var monoSamples: [Float]
+        if channelCount >= 2 {
+            let monoCount = allSamples.count / channelCount
+            monoSamples = [Float](repeating: 0, count: monoCount)
+            for i in 0..<monoCount {
+                var sum: Float = 0
+                for ch in 0..<channelCount {
+                    sum += allSamples[i * channelCount + ch]
+                }
+                monoSamples[i] = sum / Float(channelCount)
+            }
+        } else {
+            monoSamples = allSamples
+        }
+
         // Short-time energy analysis
-        let windowSize = Int(sampleRate * 0.01) // 10ms window
+        let windowSize = Int(sampleRate * 0.005) // 5ms window (sharper detection)
         let hopSize = windowSize / 2
         var energies: [(time: Double, energy: Float)] = []
 
         var i = 0
-        while i + windowSize <= allSamples.count {
+        while i + windowSize <= monoSamples.count {
             var sumSquared: Float = 0
-            vDSP_svesq(Array(allSamples[i..<i + windowSize]), 1, &sumSquared, vDSP_Length(windowSize))
+            vDSP_svesq(Array(monoSamples[i..<i + windowSize]), 1, &sumSquared, vDSP_Length(windowSize))
             let energy = sumSquared / Float(windowSize)
             let time = Double(i) / sampleRate
             energies.append((time: time, energy: energy))
@@ -73,14 +108,23 @@ struct ImpactDetector {
 
         guard !energies.isEmpty else { return nil }
 
-        // Find the peak energy spike
-        // Use a rolling average to detect sudden spikes
-        let rollingWindowSize = 20
-        var bestTime: Double = 0
-        var bestRatio: Float = 0
+        // Calculate global baseline (median energy)
+        let sortedEnergies = energies.map(\.energy).sorted()
+        let medianEnergy = sortedEnergies[sortedEnergies.count / 2]
+        let threshold = max(medianEnergy * 8.0, 0.001) // 8x above median
+
+        // Find the FIRST spike that exceeds threshold
+        // Use rolling average to detect sudden change
+        let rollingWindowSize = 30  // ~75ms lookback
+        let skipStart = 0.3  // skip first 0.3s (handling noise)
+
+        var candidates: [(time: Double, ratio: Float, energy: Float)] = []
 
         for j in rollingWindowSize..<energies.count {
-            // Calculate rolling average of previous windows
+            let time = energies[j].time
+            if time < skipStart { continue }
+
+            // Rolling average of previous windows
             var rollingSum: Float = 0
             for k in (j - rollingWindowSize)..<j {
                 rollingSum += energies[k].energy
@@ -90,15 +134,42 @@ struct ImpactDetector {
             guard rollingAvg > 0 else { continue }
             let ratio = energies[j].energy / rollingAvg
 
-            // Impact should be a sudden spike (3x+ above rolling average)
-            if ratio > bestRatio && ratio > 3.0 {
-                bestRatio = ratio
-                bestTime = energies[j].time
+            // Impact: sudden spike 3x+ above local average AND above global threshold
+            if ratio > 3.0 && energies[j].energy > threshold {
+                candidates.append((time: time, ratio: ratio, energy: energies[j].energy))
             }
         }
 
-        guard bestRatio > 3.0 else { return nil }
+        guard !candidates.isEmpty else {
+            print("[Impact] No impact detected (no spikes above threshold)")
+            return nil
+        }
 
-        return CMTime(seconds: bestTime, preferredTimescale: 600)
+        // Take the FIRST candidate (not the largest!)
+        // Group nearby candidates (within 100ms) and pick the earliest in each group
+        var groups: [[(time: Double, ratio: Float, energy: Float)]] = []
+        for candidate in candidates.sorted(by: { $0.time < $1.time }) {
+            if let lastGroup = groups.last, let lastCandidate = lastGroup.last,
+               candidate.time - lastCandidate.time < 0.1 {
+                groups[groups.count - 1].append(candidate)
+            } else {
+                groups.append([candidate])
+            }
+        }
+
+        // Return ALL group peaks sorted by time
+        var groupPeaks: [(time: Double, energy: Float, ratio: Float)] = []
+        for group in groups {
+            let peak = group.max(by: { $0.energy < $1.energy })!
+            groupPeaks.append((time: peak.time, energy: peak.energy, ratio: peak.ratio))
+        }
+        groupPeaks.sort { $0.time < $1.time }
+
+        print("[Impact] Found \(groupPeaks.count) candidates:")
+        for (i, peak) in groupPeaks.prefix(8).enumerated() {
+            print("[Impact]   #\(i): \(String(format: "%.3f", peak.time))s energy=\(String(format: "%.4f", peak.energy)) ratio=\(String(format: "%.1f", peak.ratio))")
+        }
+
+        return groupPeaks
     }
 }
